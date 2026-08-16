@@ -1,0 +1,19 @@
+{
+  "schema": "crcv-v5.5-simulation-geometry-prior-1",
+  "trajectories": 761,
+  "resampled_trajectories": 761,
+  "turn_samples": 20849,
+  "log_turn_median": 0.04847313500092164,
+  "log_turn_scale": 0.05165078244945423,
+  "log_tortuosity_median": 0.04432249257377239,
+  "log_tortuosity_scale": 0.024552692208572306,
+  "turn_q01": 0.002762136748060584,
+  "turn_q05": 0.0029092722106724977,
+  "turn_q50": 0.04966717213392258,
+  "turn_q95": 0.632512605190277,
+  "turn_q99": 2.595395545959476,
+  "tort_q01": 1.0158980549826624,
+  "tort_q50": 1.0453194082833057,
+  "tort_q95": 1.3298191487019697,
+  "tort_q99": 2.1186534696964707
+}
