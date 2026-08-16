@@ -1,0 +1,26 @@
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+
+# Large/local research outputs
+artifacts/cache/
+artifacts/**/parts/
+*.pkl
+*.pt
+*.pth
+*.ckpt
+*.npz
+*.npy
+
+# Datasets / local inputs
+data/
+datasets/
+*.zip
+
+# OS / IDE
+.DS_Store
+.vscode/
+.idea/

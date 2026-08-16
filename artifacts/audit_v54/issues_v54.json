@@ -1,0 +1,70 @@
+[
+  {
+    "id": "V54-01",
+    "severity": "P0",
+    "issue": "Missing-skeleton target mixed 1-2px Base/GT alignment error with true topological gaps",
+    "status": "RESOLVED",
+    "fix": "core_missing_skeleton = GT skeleton outside Base dilation radius 2; exact AddedPrecision unchanged"
+  },
+  {
+    "id": "V54-02",
+    "severity": "P1",
+    "issue": "Global source pool could be monopolized by noisy multi-endpoint components",
+    "status": "RESOLVED",
+    "fix": "component-balanced source ranking, max 2 endpoints/component"
+  },
+  {
+    "id": "V54-03",
+    "severity": "P1",
+    "issue": "Long open CONTINUE gaps such as c1228 had no correct proposal",
+    "status": "RESOLVED_PROPOSAL",
+    "fix": "RGB ridge CONTINUE beam family; c1228 now has exact-positive proposals"
+  },
+  {
+    "id": "V54-04",
+    "severity": "P1",
+    "issue": "V5.2b retained only one target per distance band",
+    "status": "RESOLVED_PROPOSAL",
+    "fix": "top-K spatial target hypotheses with NMS; CAL core proposal recovery reaches 32.86%"
+  },
+  {
+    "id": "V54-05",
+    "severity": "P1",
+    "issue": "Dijkstra destination-conditioned CONNECT produced shortcut/off-GT paths",
+    "status": "REJECTED",
+    "fix": "removed from active family list"
+  },
+  {
+    "id": "V54-06",
+    "severity": "P1",
+    "issue": "Meet-in-the-middle ridge CONNECT produced no CAL positive candidates",
+    "status": "REJECTED",
+    "fix": "removed from active family list"
+  },
+  {
+    "id": "V54-07",
+    "severity": "P1",
+    "issue": "Final acceptance verifier cannot separate hard false paths from true paths",
+    "status": "OPEN_BLOCKER",
+    "evidence": "CAL core+topK pairwise AUC ~0.628, AP ~0.005; no >=85% precision/zero-normal operating point"
+  },
+  {
+    "id": "V54-08",
+    "severity": "P1",
+    "issue": "Recovery output cannot be enabled while verifier is unqualified",
+    "status": "FAIL_CLOSED",
+    "fix": "CRCVV54Block returns Base only"
+  },
+  {
+    "id": "V54-09",
+    "severity": "P1",
+    "issue": "Suppression remains unqualified",
+    "status": "OPEN_FAIL_CLOSED"
+  },
+  {
+    "id": "V54-10",
+    "severity": "P1",
+    "issue": "Width and joint Base training remain unsafe before final recovery qualification",
+    "status": "BLOCKED_BY_DESIGN"
+  }
+]

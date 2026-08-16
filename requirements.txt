@@ -1,0 +1,7 @@
+numpy
+scipy
+scikit-image
+scikit-learn
+opencv-python-headless
+torch
+pytest

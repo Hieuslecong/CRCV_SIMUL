@@ -1,0 +1,173 @@
+{
+  "precision": 0.9999999999772728,
+  "missing_skeleton_recovery": 0.015936254980047936,
+  "positive_images": 1,
+  "crack_images": 10,
+  "tp": 44,
+  "fp": 0,
+  "details": [
+    {
+      "image": "validation_BCL_c102.png",
+      "endpoint_infos": 10,
+      "pairs": 3,
+      "candidates": 0,
+      "positive_candidates": 0,
+      "tp": 0,
+      "fp": 0,
+      "skeleton_hit": 0,
+      "missing_skeleton": 10,
+      "used": []
+    },
+    {
+      "image": "validation_BCL_c105.png",
+      "endpoint_infos": 4,
+      "pairs": 1,
+      "candidates": 3,
+      "positive_candidates": 0,
+      "tp": 0,
+      "fp": 0,
+      "skeleton_hit": 0,
+      "missing_skeleton": 60,
+      "used": []
+    },
+    {
+      "image": "validation_BCL_c1076.png",
+      "endpoint_infos": 3,
+      "pairs": 1,
+      "candidates": 2,
+      "positive_candidates": 0,
+      "tp": 0,
+      "fp": 0,
+      "skeleton_hit": 0,
+      "missing_skeleton": 47,
+      "used": []
+    },
+    {
+      "image": "validation_BCL_c1093.png",
+      "endpoint_infos": 10,
+      "pairs": 3,
+      "candidates": 7,
+      "positive_candidates": 0,
+      "tp": 0,
+      "fp": 0,
+      "skeleton_hit": 0,
+      "missing_skeleton": 9,
+      "used": []
+    },
+    {
+      "image": "validation_BCL_c1111.png",
+      "endpoint_infos": 8,
+      "pairs": 0,
+      "candidates": 0,
+      "positive_candidates": 0,
+      "tp": 0,
+      "fp": 0,
+      "skeleton_hit": 0,
+      "missing_skeleton": 35,
+      "used": []
+    },
+    {
+      "image": "validation_BCL_c1161.png",
+      "endpoint_infos": 6,
+      "pairs": 2,
+      "candidates": 4,
+      "positive_candidates": 0,
+      "tp": 0,
+      "fp": 0,
+      "skeleton_hit": 0,
+      "missing_skeleton": 0,
+      "used": []
+    },
+    {
+      "image": "validation_BCL_c1210.png",
+      "endpoint_infos": 9,
+      "pairs": 1,
+      "candidates": 3,
+      "positive_candidates": 0,
+      "tp": 0,
+      "fp": 0,
+      "skeleton_hit": 0,
+      "missing_skeleton": 93,
+      "used": []
+    },
+    {
+      "image": "validation_BCL_c1228.png",
+      "endpoint_infos": 1,
+      "pairs": 0,
+      "candidates": 0,
+      "positive_candidates": 0,
+      "tp": 0,
+      "fp": 0,
+      "skeleton_hit": 0,
+      "missing_skeleton": 62,
+      "used": []
+    },
+    {
+      "image": "validation_BCL_c1295.png",
+      "endpoint_infos": 16,
+      "pairs": 16,
+      "candidates": 32,
+      "positive_candidates": 4,
+      "tp": 44,
+      "fp": 0,
+      "skeleton_hit": 8,
+      "missing_skeleton": 178,
+      "used": [
+        {
+          "variant": "rgb_heavy",
+          "pair_distance": 20.099750518798828,
+          "facing_a": 0.6332377791404724,
+          "facing_b": 0.8465242385864258,
+          "source": [
+            155,
+            38
+          ],
+          "dest": [
+            125,
+            46
+          ]
+        },
+        {
+          "variant": "balanced",
+          "pair_distance": 20.099750518798828,
+          "facing_a": 0.6332377791404724,
+          "facing_b": 0.8465242385864258,
+          "source": [
+            155,
+            38
+          ],
+          "dest": [
+            125,
+            46
+          ]
+        },
+        {
+          "variant": "rgb_heavy",
+          "pair_distance": 18.384777069091797,
+          "facing_a": 0.9999999403953552,
+          "facing_b": 0.7071067690849304,
+          "source": [
+            155,
+            38
+          ],
+          "dest": [
+            141,
+            24
+          ]
+        }
+      ]
+    },
+    {
+      "image": "validation_BCL_c1316.png",
+      "endpoint_infos": 6,
+      "pairs": 2,
+      "candidates": 5,
+      "positive_candidates": 0,
+      "tp": 0,
+      "fp": 0,
+      "skeleton_hit": 0,
+      "missing_skeleton": 8,
+      "used": []
+    }
+  ]
+}

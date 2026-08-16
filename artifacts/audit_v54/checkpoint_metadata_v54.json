@@ -1,0 +1,40 @@
+{
+  "schema": "crcv-v5.4-checkpoint-bundle-1",
+  "config": "config_v54.json",
+  "artifacts": {
+    "base_v52_frozen.pt": {
+      "sha256": "f1883b3e9d5c10eb1eecde4a4ddf40c862ad074769d6493173fe0a6bbd866861",
+      "size": 222837
+    },
+    "geometry_xy.pt": {
+      "sha256": "372b8b0634f08bfca6db39cf89cff21a2aa1f9ac472300505c4dc7166845bf87",
+      "size": 25669
+    },
+    "centerline_field_v52b.pt": {
+      "sha256": "5c43f2dfe734e9cc3e92f6620b0aef45fb3f2504978dc855228f66c9f929c7d4",
+      "size": 18994
+    },
+    "iterative_tracer_v53b.pt": {
+      "sha256": "6a0a27c454c6c207ca53eea1d9305c3c96f5d1805e5516216106e3e3c9dd0aeb",
+      "size": 94803
+    },
+    "endpoint_ranker_v53.pkl": {
+      "sha256": "426625bd4e798476c75ab9f2f783b233e658330d17f93c81261ea7c6d1ea748c",
+      "size": 1557
+    },
+    "verifier_v54_coregap_topk_pairwise.pkl": {
+      "sha256": "ee100348be3de2b7d0f6d92670396f9f7541b7161ea38cc4a9dbd2004442b219",
+      "size": 5672
+    }
+  },
+  "qualification": {
+    "proposal": true,
+    "verifier": false,
+    "recovery": false,
+    "suppression": false,
+    "width": false,
+    "joint_training": false
+  },
+  "runtime_policy": "FAIL_CLOSED_BASE_ONLY",
+  "final_test": "SEALED_NOT_USED"
+}

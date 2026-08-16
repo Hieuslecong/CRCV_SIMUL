@@ -1,0 +1,18 @@
+{
+  "version": "crcv-v5.4-coregap-hybrid-proposal",
+  "protocol": "three-way-frozen-base-plus-oof-proposal",
+  "frozen_base": "artifacts/models/base_v52_frozen.pt",
+  "base_threshold": 0.4,
+  "gap_semantics": {"type":"core_topological_gap","clearance_px":2,"candidate_hit_tolerance_px":1,"rationale":"exclude 1-2px GT/Base centerline alignment error from crack-continuation targets"},
+  "proposal_families_active": ["v52b_multitarget","v52b_topk_spatial_targets","v53_iterative_tracer","v54_rgb_ridge_continue"],
+  "proposal_families_rejected": ["v54_dijkstra_bidir_connect","v54_ridge_meet_connect"],
+  "source_selection": {"component_balanced":true,"max_sources":12,"per_component":2,"border_margin":10},
+  "proposal_qualification": {"calibration_oracle_precision":0.9821428571253189,"calibration_core_gap_recovery":0.32857142856673466,"calibration_recoverable_image_coverage":1.0,"real_val_regular_missing_skeleton_oracle_precision":0.9887640449410429,"real_val_regular_missing_skeleton_recovery":0.3745019920311265,"qualified":true},
+  "verifier": {"checkpoint":"artifacts/models/verifier_v54_coregap_topk_pairwise.pkl","schema":"crcv-v5.4-coregap-topk-pairwise-verifier-1","qualified":false,"calibration_zero_normal_best_tp":0,"calibration_zero_normal_best_fp":3,"reason":"no CAL operating point reaches AddedPrecision >= 0.85 with zero normal additions"},
+  "recovery_enabled": false,
+  "suppression_enabled": false,
+  "width_enabled": false,
+  "joint_training_enabled": false,
+  "runtime_policy": "FAIL_CLOSED_BASE_ONLY",
+  "final_test": "SEALED_NOT_USED"
+}

@@ -1,0 +1,22 @@
+{
+  "split": "module",
+  "semantics": "core_gap+v52b_topk",
+  "n": 24106,
+  "pos": 425,
+  "neg": 22760,
+  "amb": 921,
+  "stats": [
+    {"image":"training_BCL_c1015.png","typ":"crack","n":2210,"pos":160,"neg":1676,"amb":374,"topk_added":552},
+    {"image":"training_BCL_c1068.png","typ":"crack","n":2475,"pos":193,"neg":2042,"amb":240,"topk_added":686},
+    {"image":"training_BCL_c1088.png","typ":"crack","n":999,"pos":0,"neg":904,"amb":95,"topk_added":55},
+    {"image":"training_BCL_c1073.png","typ":"crack","n":1695,"pos":72,"neg":1411,"amb":212,"topk_added":412},
+    {"image":"training_BCL_c1038.png","typ":"crack","n":681,"pos":0,"neg":681,"amb":0,"topk_added":116},
+    {"image":"training_BCL_c1018.png","typ":"crack","n":1846,"pos":0,"neg":1846,"amb":0,"topk_added":385},
+    {"image":"2 (10117).jpg","typ":"normal","n":2136,"pos":0,"neg":2136,"amb":0,"topk_added":534},
+    {"image":"2 (10013).jpg","typ":"normal","n":2413,"pos":0,"neg":2413,"amb":0,"topk_added":653},
+    {"image":"2 (10003).jpg","typ":"normal","n":2257,"pos":0,"neg":2257,"amb":0,"topk_added":554},
+    {"image":"2 (10137).jpg","typ":"normal","n":2416,"pos":0,"neg":2416,"amb":0,"topk_added":697},
+    {"image":"2 (10074).jpg","typ":"normal","n":2460,"pos":0,"neg":2460,"amb":0,"topk_added":698},
+    {"image":"2 (10107).jpg","typ":"normal","n":2518,"pos":0,"neg":2518,"amb":0,"topk_added":748}
+  ]
+}
