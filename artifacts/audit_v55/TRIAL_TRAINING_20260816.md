@@ -1,8 +1,10 @@
 # CRCV V5.5 Trial Training Report — 2026-08-16
 
+> **SUPERSEDED FOR SUPPRESSION RUNTIME CLAIMS BY V5.5c P0 RE-AUDIT.** The suppression sections below used `ComponentBankDataset` during evaluation. That dataset excludes GT-ambiguous components and therefore let GT influence runtime component eligibility. Recovery results remain valid; suppression numbers below are retained only as historical development evidence. See `P0_SUPPRESSION_RUNTIME_REAUDIT.md` for corrected all-component results.
+
 ## Decision
 
-**Suppression shows a robust positive signal; recovery verification still fails. Full V5.5 remains fail-closed.**
+**Suppression showed an initial positive signal; recovery verification still fails. Full V5.5 remains fail-closed.**
 
 No final-test sample was used. V5.4 proposal generation stayed frozen.
 
@@ -16,7 +18,7 @@ Three recovery formulations were inspected on CAL.
 
 **Recovery gate: FAIL.** No recovery output may affect runtime.
 
-## 2. Suppression CAL training
+## 2. Historical suppression CAL training — superseded
 
 The simulation-aware component suppressor was trained for 20 epochs with three seeds, always using the CAL-derived threshold only.
 
@@ -26,38 +28,24 @@ The simulation-aware component suppressor was trained for 20 epochs with three s
 | 5552 | 0.095% | 31.58% | PASS |
 | 5553 | 0.095% | 31.75% | PASS |
 
-Mean CAL false-pixel removal: **31.48%**. Mean true-pixel removal: **0.095%**. All three seeds pass the CAL suppression gate (TP removal <=1%, FP removal >=30%).
+These values are not valid for runtime qualification because the evaluation candidate set was GT-filtered. They are superseded by V5.5c.
 
-## 3. External real_val diagnostic (threshold frozen from CAL)
+## 3. Historical real_val diagnostic — superseded
 
-Across the same three seeds:
+Across the same three seeds the earlier diagnostic reported true-pixel removal 0.232% ± 0.047%, false-pixel removal 22.13% ± 0.66%, Dice +0.01531 ± 0.00012 and clDice +0.05221 ± 0.00175. These values are retained only for provenance and must not be used for runtime/paper claims.
 
-- true-pixel removal: **0.232% ± 0.047%**
-- false-pixel removal: **22.13% ± 0.66%**
-- crack Dice delta: **+0.01531 ± 0.00012**
-- crack clDice delta: **+0.05221 ± 0.00175**
-- CC-error delta: **-8.90 ± 0.26**
-- precision delta: **+0.01932 ± 0.00015**
-- recall delta: **-0.00069 ± 0.00034**
-- normal predicted-pixel removal: **41.65% ± 1.49%**
-- normal connected-component reduction: **78.29% ± 0.65%**
-
-The external signal is strong and very seed-stable for Dice/clDice/topology, but false-pixel removal is only ~22.1%, below the predeclared >=30% external target. Therefore suppression is **promising but not runtime-qualified**.
-
-## 4. Current scientific state
+## 4. Correct scientific state after V5.5c re-audit
 
 ```text
 proposal_qualified          = true
-sim_prior_profile_fitted    = true
 relation_verifier_qualified = false
-suppression_CAL_gate        = true (3/3 seeds)
-suppression_external_gate   = false
+suppression_original_CAL    = PASS with GT-free all-component confidence baseline
+suppression_multibackbone   = false
+simulation_for_suppression  = rejected by current evidence
 recovery_enabled            = false
 suppression_enabled         = false
 final_test                  = SEALED_NOT_USED
 runtime                     = FAIL_CLOSED_BASE_ONLY
 ```
 
-## 5. Interpretation
-
-The trial changes the priority: the simulation-aware suppression branch now has reproducible evidence of improving segmentation and topology while preserving crack recall. The recovery branch remains the blocker and should not be activated. The next justified experiment is to validate suppression on additional frozen backbones without tuning its threshold on real_val, while redesigning recovery acceptance separately.
+The authoritative suppression report is `P0_SUPPRESSION_RUNTIME_REAUDIT.md`.
