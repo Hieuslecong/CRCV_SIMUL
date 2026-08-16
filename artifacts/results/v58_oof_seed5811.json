@@ -1,0 +1,15 @@
+{
+  "schema": "crcv-v5.8-sixfold-oof-path-strip-trial-1",
+  "seed": 5811,
+  "epochs": 20,
+  "params": 23356,
+  "training_samples": 2982,
+  "training_positive": 464,
+  "training_images": 45,
+  "cal_candidates": 5072,
+  "cal_positive": 37,
+  "candidate_diag": {"auc": 0.35503905096755145, "ap": 0.005295848710328973},
+  "calibration": {"utility_threshold": 0.0001650070698815398, "validity_threshold": 0.75, "margin_threshold": 0.005, "added_precision": 0.11111111110493826, "core_gap_recovery": 0.0, "tp": 2, "fp": 16, "core_hit": 0, "core_total": 53, "normal_added": 0, "accepted": 2},
+  "qualified": false,
+  "final_test": "SEALED_NOT_USED"
+}

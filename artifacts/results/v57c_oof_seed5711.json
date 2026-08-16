@@ -1,0 +1,15 @@
+{
+  "schema": "crcv-v5.7c-full-oof-path-strip-trial-1",
+  "seed": 5711,
+  "epochs": 20,
+  "params": 23356,
+  "training_samples": 3166,
+  "training_positive": 745,
+  "training_images": 41,
+  "cal_candidates": 5072,
+  "cal_positive": 37,
+  "candidate_diag": {"auc": 0.5681419254408331, "ap": 0.008148060946077108},
+  "calibration": {"utility_threshold": 2.9949048439448234e-05, "validity_threshold": 0.85, "margin_threshold": 0.04, "added_precision": 0.0, "core_gap_recovery": 0.0, "tp": 0, "fp": 4, "core_hit": 0, "core_total": 53, "normal_added": 0, "accepted": 1},
+  "qualified": false,
+  "final_test": "SEALED_NOT_USED"
+}
