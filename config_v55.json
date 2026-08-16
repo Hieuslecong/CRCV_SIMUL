@@ -1,0 +1,61 @@
+{
+  "version": "crcv-v5.5-sim-relational-block",
+  "protocol": "frozen-base-frozen-v54-proposal-sim-prior-real-oof-relational-verification",
+  "frozen_base": "artifacts/models/base_v52_frozen.pt",
+  "base_threshold": 0.4,
+  "proposal": {
+    "source": "V5.4 frozen hybrid proposal bank",
+    "qualified": true,
+    "frozen": true,
+    "calibration_oracle_precision": 0.9821428571253189,
+    "calibration_core_gap_recovery": 0.32857142856673466
+  },
+  "simulation_prior": {
+    "role": [
+      "geometry plausibility for suppression features",
+      "propagation prior for recovery ranking"
+    ],
+    "raw_xy_required_for_refit": "data/simulation/crack_xy.txt",
+    "profile": "artifacts/models/sim_prior_v55.json",
+    "geometry_only": true,
+    "may_authorize_runtime_change": false,
+    "training_policy": "pretraining_or_prior_only; final decisions require real RGB + natural OOF evidence"
+  },
+  "relation_verifier": {
+    "schema": "crcv-v5.5-source-path-destination-relational-1",
+    "checkpoint": "artifacts/models/verifier_v55_relational.pt",
+    "qualified": false,
+    "decision": "top1_absolute_threshold_plus_same_source_margin_plus_abstention",
+    "loss": "same-source hard-negative ranking + focal BCE + auxiliary path/continuity",
+    "parameter_target": "<250k",
+    "gates": {
+      "added_precision_min": 0.85,
+      "target_added_precision": 0.9,
+      "core_gap_recovery_min": 0.15,
+      "normal_added_pixels_max": 0,
+      "cldice_delta_min": 0.0,
+      "cc_error_not_worse": true
+    }
+  },
+  "suppression_head": {
+    "schema": "crcv-v5.5-simulation-aware-component-keep-1",
+    "checkpoint": "artifacts/models/suppress_v55.pt",
+    "qualified": false,
+    "loss": "asymmetric keep loss; true crack removal heavily penalized",
+    "gates": {
+      "true_pixel_removal_max": 0.01,
+      "multimodel_false_removal_min": 0.3
+    }
+  },
+  "runtime_safety": {
+    "max_add_fraction": 0.02,
+    "max_remove_fraction": 0.01,
+    "max_cc_increase": 0
+  },
+  "recovery_enabled": false,
+  "suppression_enabled": false,
+  "width_enabled": false,
+  "joint_training_enabled": false,
+  "runtime_policy": "FAIL_CLOSED_BASE_ONLY",
+  "final_test": "SEALED_NOT_USED"
+}
