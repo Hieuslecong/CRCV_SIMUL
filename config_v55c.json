@@ -1,0 +1,31 @@
+{
+  "version": "crcv-v5.5c-gtfree-suppression-reaudit",
+  "proposal": {
+    "source": "V5.4 frozen hybrid proposal",
+    "qualified": true,
+    "frozen": true
+  },
+  "recovery": {
+    "simulation_geometry_prior": true,
+    "relation_verifier_qualified": false,
+    "enabled": false
+  },
+  "suppression": {
+    "runtime_component_space": "all Base connected components; GT forbidden",
+    "selected_development_baseline": "component_mean_base_probability",
+    "calibration": "CAL only, maximize false-pixel removal subject to true-pixel removal <= 1%",
+    "original_v52_cal_threshold": 0.630070031963199,
+    "original_v52_cal_true_pixel_removal": 0.001957311958243829,
+    "original_v52_cal_false_pixel_removal": 0.4587892049598718,
+    "original_v52_cal_gate_pass": true,
+    "multi_backbone_qualified": false,
+    "simulation_veto_selected": false,
+    "simulation_veto_reason": "no gain over probability-only baseline after GT-free all-component re-audit",
+    "enabled": false
+  },
+  "development_sets": {
+    "real_val": "RETIRED_FOR_FRESH_VALIDATION_AFTER_V55C_REDESIGN"
+  },
+  "runtime_policy": "FAIL_CLOSED_BASE_ONLY",
+  "final_test": "SEALED_NOT_USED"
+}
