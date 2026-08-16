@@ -1,0 +1,41 @@
+{
+  "schema": "crcv-v5.5-trial-summary-20260816",
+  "protocol": {
+    "proposal": "V5.4 frozen",
+    "final_test": "SEALED_NOT_USED",
+    "calibration": "CAL only",
+    "external": "real_val diagnostic, no retuning"
+  },
+  "recovery": {
+    "direct": {"auc": 0.7126967445, "ap": 0.0082257602, "added_precision": 0.1756756757, "core_gap_recovery": 0.0285714286, "normal_added": 144, "qualified": false},
+    "controlled_curriculum": {"auc": 0.7139523091, "ap": 0.0064748752, "added_precision": 0.75, "core_gap_recovery": 0.0, "normal_added": 26, "qualified": false},
+    "path_validity_redesign": {"candidate_auc_continuity": 0.79153, "candidate_ap_best_combination": 0.031599, "zero_normal_best_exact_precision": 0.1666666666, "zero_normal_best_core_gap_recovery": 0.0142857143, "qualified": false}
+  },
+  "suppression": {
+    "calibration_3seed": {
+      "true_pixel_removal_mean": 0.0009508415,
+      "false_pixel_removal_mean": 0.3147895427,
+      "gate_pass_seeds": 3,
+      "seeds": 3
+    },
+    "real_val_3seed": {
+      "true_pixel_removal_mean": 0.0023173843,
+      "true_pixel_removal_std": 0.0004722150,
+      "false_pixel_removal_mean": 0.2213008863,
+      "false_pixel_removal_std": 0.0066345086,
+      "dice_delta_mean": 0.0153062887,
+      "dice_delta_std": 0.0001191045,
+      "cldice_delta_mean": 0.0522144026,
+      "cldice_delta_std": 0.0017452337,
+      "ccerr_delta_mean": -8.9,
+      "ccerr_delta_std": 0.2645751311,
+      "precision_delta_mean": 0.0193170196,
+      "recall_delta_mean": -0.0006855913,
+      "normal_pixel_removal_mean": 0.4164748017,
+      "normal_component_reduction_mean": 0.7829059829
+    },
+    "qualified": false,
+    "reason": "CAL gate passes 3/3 seeds, but external real_val false-pixel removal is below the predeclared 30% target; multi-backbone validation not run"
+  },
+  "runtime": {"recovery_enabled": false, "suppression_enabled": false, "policy": "FAIL_CLOSED_BASE_ONLY"}
+}
