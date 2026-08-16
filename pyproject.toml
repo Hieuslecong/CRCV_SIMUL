@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "crcv52"
-version = "5.4.0"
-description = "CRCV V5.4 CoreGap hybrid proposal research prototype"
+version = "5.5.0"
+description = "CRCV V5.5 simulation-informed same-crack relational correction research prototype"
 requires-python = ">=3.10"
 dependencies = [
   "numpy",
