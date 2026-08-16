@@ -48,6 +48,7 @@ def debug_items(split='train', require_native_match=True):
         if not ip.exists() or not mp.exists(): continue
         if require_native_match and Image.open(ip).size!=Image.open(mp).size: continue
         stem=Path(name).stem
+        # strongest lineage available from filename heuristics; conservative group for known parent families.
         if stem.startswith('CRACK500_'): lin=stem
         elif stem.startswith('DeepCrack_'): lin=stem.rsplit('-',1)[0]
         elif stem.startswith('Khanh11k_'): lin='_'.join(stem.split('_')[:4])

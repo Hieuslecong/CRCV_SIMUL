@@ -3,11 +3,41 @@
   "protocol": "three-way-frozen-base-plus-oof-tracer",
   "frozen_base": "artifacts/models/base_v52_frozen.pt",
   "base_threshold": 0.4,
-  "source": {"border_margin":10,"seed_radius":8,"max_sources":8,"boundary_anchor_radius":12,"ranker":"artifacts/models/endpoint_ranker_v53.pkl"},
-  "iterative_tracer": {"checkpoint":"artifacts/models/iterative_tracer_v53b.pt","params":21706,"patch_size":21,"beam_width":8,"branch_k_valid_moves":5,"max_steps":28,"checkpoint_steps":[4,8,12,16,20,24,28],"stop_weight_multiplier":3.5,"self_correction_curriculum":true},
-  "proposal_families": ["v52b_adaptive_multitarget","v53_iterative_tracer"],
-  "verifier": {"checkpoint":"artifacts/models/iterative_verifier_v53.pkl","qualified":false,"calibration_added_precision":0.39285714284311224,"calibration_normal_added":7},
-  "qualification": {"proposal_oracle_precision_min":0.95,"proposal_missing_skeleton_recovery_min":0.30,"final_centerline_precision_min":0.85,"final_missing_skeleton_recovery_min":0.10,"normal_added_pixels":0},
+  "source": {
+    "border_margin": 10,
+    "seed_radius": 8,
+    "max_sources": 8,
+    "boundary_anchor_radius": 12,
+    "ranker": "artifacts/models/endpoint_ranker_v53.pkl"
+  },
+  "iterative_tracer": {
+    "checkpoint": "artifacts/models/iterative_tracer_v53b.pt",
+    "params": 21706,
+    "patch_size": 21,
+    "beam_width": 8,
+    "branch_k_valid_moves": 5,
+    "max_steps": 28,
+    "checkpoint_steps": [4, 8, 12, 16, 20, 24, 28],
+    "stop_weight_multiplier": 3.5,
+    "self_correction_curriculum": true
+  },
+  "proposal_families": [
+    "v52b_adaptive_multitarget",
+    "v53_iterative_tracer"
+  ],
+  "verifier": {
+    "checkpoint": "artifacts/models/iterative_verifier_v53.pkl",
+    "qualified": false,
+    "calibration_added_precision": 0.39285714284311224,
+    "calibration_normal_added": 7
+  },
+  "qualification": {
+    "proposal_oracle_precision_min": 0.95,
+    "proposal_missing_skeleton_recovery_min": 0.30,
+    "final_centerline_precision_min": 0.85,
+    "final_missing_skeleton_recovery_min": 0.10,
+    "normal_added_pixels": 0
+  },
   "suppression_enabled": false,
   "width_enabled": false,
   "joint_training_enabled": false,

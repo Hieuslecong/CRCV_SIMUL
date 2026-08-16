@@ -8,7 +8,7 @@ class CenterlineFieldNetB(nn.Module):
         super().__init__();self.net=nn.Sequential(nn.Conv2d(12,c,3,1,1,bias=False),nn.GroupNorm(4,c),nn.SiLU(),DW(c),DW(c,2),DW(c,3),nn.Conv2d(c,1,1))
     def forward(self,x):return self.net(x)[:,0]
 def evidence(image):
-    g=cv2.cvtColor((np.clip(image,0,1)*255).astype(np.uint8),cv2.COLOR_RGB2GRAY).astype(np.float32)/255.;bh=cv2.morphologyEx(g,cv2.MORPH_BLACKHAT,cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(7,7)));blur=cv2.GaussianBlur(g,(0,0),2);dark=np.maximum(blur-g,0);gx=cv2.Sobel(g,cv2.CV_32F,1,0,ksize=3);gy=cv2.Sobel(g,cv2.CV_32F,0,1,ksize=3);gr=np.sqrt(gx*gx+gy*gy)
+    g=cv2.cvtColor((np.clip(image,0,1)*255).astype(np.uint8),cv2.COLOR_RGB2GRAY).astype(np.float32)/255.;bh=cv2.morphologyEx(g,cv2.MORPH_BLACKHAT,cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(7,7)));blur=cv2.GaussianBlur(g,(0,0),2);dark=np.maximum(blur-g,0);gx=cv2.Sobel(g,cv2.CV_32F,1,0,ksize=3);gy=cv2.Sobel(g,cv2.CV_32F,0,1,ksize=3);gr=np.sqrt(gx*gx+gy*gy);# robust normalize
     def n(a):
         hi=float(np.quantile(a,.98));return np.clip(a/(hi+1e-6),0,1).astype(np.float32)
     return n(bh),n(dark),n(gr)
@@ -46,6 +46,7 @@ def infer_candidates_batch_b(model,image,prob,base,thr,qs,batch=128):
     return out
 
 def infer_candidates_multitarget_b(model,image,prob,base,thr,qs,batch=128):
+    """V5.2c adaptive target decoder: multiple stop hypotheses per geometry corridor."""
     if not qs:return []
     Xs=[];packs=[]
     for q in qs:
@@ -64,6 +65,7 @@ def infer_candidates_multitarget_b(model,image,prob,base,thr,qs,batch=128):
             reg=valid&(ds>=lo)&(ds<min(hi,maxd+1))
             if not reg.any():continue
             util=.82*f-.18*pd+.03*np.clip(ds/maxd,0,1);vals=np.where(reg,util,-1e9);ty,tx=np.unravel_index(np.argmax(vals),vals.shape);targets.append((int(ty),int(tx),float(f[ty,tx]),float(ds[ty,tx])))
+        # retain geometry-terminal hypothesis too if different
         end=q['prior'][-1];ey=int(round(end[1]-y0));ex=int(round(end[0]-x0))
         if 0<=ey<PATCH and 0<=ex<PATCH and valid[ey,ex]:targets.append((ey,ex,float(f[ey,ex]),float(ds[ey,ex])))
         seen=set()
@@ -81,6 +83,7 @@ def infer_candidates_multitarget_b(model,image,prob,base,thr,qs,batch=128):
     return out
 
 def infer_candidates_multitarget_topk_b(model,image,prob,base,thr,qs,batch=128,targets_per_band=3,nms_radius=4):
+    """V5.4 proposal expansion: retain multiple spatially distinct target hypotheses per band."""
     if not qs:return []
     Xs=[];packs=[]
     for q in qs:

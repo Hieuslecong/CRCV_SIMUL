@@ -24,6 +24,7 @@ def trace_inward(mask,ep,n=6):
             nxt=max(ns,key=score)
         prev_vec=(cur[0]-nxt[0],cur[1]-nxt[1]);prev,cur=cur,nxt;path.append(cur)
     if len(path)<n:return None
+    # convert inward walk endpoint->interior to chronological interior->endpoint in xy
     return np.asarray([(x,y) for y,x in path[::-1]],np.float32)
 def poly_mask(path,shape):
     m=np.zeros(shape,np.uint8);pts=np.asarray([(int(round(x)),int(round(y))) for x,y in path],np.int32)
@@ -69,6 +70,7 @@ def source_proposals(geo,base,max_sources=8,horizons=(6,12,18,24),angles=(-8,0,8
 
 def skeleton_paths(mask,min_len=12):
     sk=skeletonize(mask.astype(bool));deg=degree(sk);seen=set();paths=[]
+    # Trace from endpoints through degree-2 pixels until a junction/endpoint.
     for start in map(tuple,np.argwhere(sk&(deg==1))):
         if start in seen:continue
         path=[start];prev=None;cur=start
@@ -78,6 +80,7 @@ def skeleton_paths(mask,min_len=12):
                 q=(y+dy,x+dx)
                 if 0<=q[0]<sk.shape[0] and 0<=q[1]<sk.shape[1] and sk[q] and q!=prev:ns.append(q)
             if not ns:break
+            # prefer unvisited continuation
             cand=[q for q in ns if q not in seen] or ns
             if prev is not None:
                 pv=np.array([cur[0]-prev[0],cur[1]-prev[1]],float)
@@ -91,10 +94,17 @@ def skeleton_paths(mask,min_len=12):
     return paths
 
 def boundary_exit_anchor(mask,ep,history_xy,max_radius=12):
+    """Move an internal skeleton endpoint to the forward boundary of its Base component.
+
+    Returns (anchor_yx, extended_history_xy). The anchor remains Base-positive but has
+    at least one background neighbour, so a tracer can step into a missing region without
+    illegally traversing the source component.
+    """
     b=mask.astype(bool);hist=np.asarray(history_xy,np.float32);y,x=map(int,ep)
     if len(hist)<2:return (y,x),hist
-    v=hist[-1]-hist[-2];v=v/(np.linalg.norm(v)+1e-8)
+    v=hist[-1]-hist[-2];v=v/(np.linalg.norm(v)+1e-8) # xy outward
     H,W=b.shape
+    # Collect component boundary pixels in a local disk.
     bg=(~b).astype(np.uint8);boundary=b & (cv2.dilate(bg,np.ones((3,3),np.uint8),1).astype(bool))
     ys,xs=np.where(boundary)
     best=None

@@ -76,6 +76,7 @@ def compatible_pairs(infos, *, min_distance=4., max_distance=64., facing_min=-0.
             uv=v/(d+1e-8)
             fa=float(np.dot(a.outward_xy,uv));fb=float(np.dot(b.outward_xy,-uv))
             if fa<facing_min or fb<facing_min or fa+fb<facing_sum_min:continue
+            # Prefer high source confidence, face-to-face endpoints, and moderate gaps.
             dist_prior=math.exp(-((d-20.)/28.)**2)
             score=.34*(a.source_score+b.source_score)+.22*(fa+fb)+.10*dist_prior
             rows.append({'a':a,'b':b,'distance':d,'facing_a':fa,'facing_b':fb,'pair_score':float(score)})
@@ -90,6 +91,7 @@ def _line_corridor(shape,a_yx,b_yx,radius):
 
 def _prior_distance(shape,qa,qb,a_yx,b_yx,scale):
     m=np.zeros(shape,np.uint8)
+    # The two learned future priors plus direct destination condition form a soft guide.
     for q,anchor in [(qa,a_yx),(qb,b_yx)]:
         pts=np.vstack([np.array([[anchor[1],anchor[0]]],np.float32),np.asarray(q['prior'],np.float32)])
         cv2.polylines(m,[np.rint(pts).astype(np.int32)],False,1,1,lineType=cv2.LINE_8)
@@ -112,18 +114,23 @@ def bidirectional_connect_candidates(field_model,geo,image,prob,base,thr,pair, *
     fixed cost mixtures are emitted so the downstream verifier/oracle can assess coverage.
     """
     base=base.astype(bool);a:EndpointInfo=pair['a'];b:EndpointInfo=pair['b'];ay,ax=a.anchor_yx;by,bx=b.anchor_yx
+    # Horizon follows pair distance but remains within the geometry model's stable regime.
     horizon=int(np.clip(math.ceil(pair['distance'])+6,12,36))
     fa,qa=source_field_map(field_model,geo,image,prob,base,thr,a.anchor_yx,a.history_xy,horizon,corridor_radius)
     fb,qb=source_field_map(field_model,geo,image,prob,base,thr,b.anchor_yx,b.history_xy,horizon,corridor_radius)
     tube_r=int(np.clip(7+pair['distance']*.12,8,15));tube=_line_corridor(base.shape,a.anchor_yx,b.anchor_yx,tube_r)
+    # Require support from the destination-conditioned tube and at least one learned corridor.
     corr=tube & (qa['corridor']|qb['corridor']|_line_corridor(base.shape,a.anchor_yx,b.anchor_yx,max(5,tube_r//2)))
+    # Keep an escape hatch for modest geometry disagreement without opening the whole image.
     corr |= _line_corridor(base.shape,a.anchor_yx,b.anchor_yx,max(5,tube_r//2))
     allowed=corr & ~base
     allowed[ay,ax]=True;allowed[by,bx]=True
+    # Other Base pixels remain forbidden, which prevents third-component crossing.
     bh,dark,gr=evidence(image);ridge=np.maximum(bh,dark);rp=relprob(prob,thr)
     pair_field=np.sqrt(np.clip(fa,0,1)*np.clip(fb,0,1)).astype(np.float32)
     avg_field=.5*(np.clip(fa,0,1)+np.clip(fb,0,1))
     gd=_prior_distance(base.shape,qa,qb,a.anchor_yx,b.anchor_yx,tube_r)
+    # Three fixed, predeclared proposal families. These are not calibrated on real_val.
     variants={
       'balanced': .35*(1-pair_field)+.20*(1-avg_field)+.20*(1-ridge)+.15*gd+.10*(1-rp),
       'field_heavy': .55*(1-pair_field)+.15*(1-ridge)+.20*gd+.10*(1-rp),
@@ -196,7 +203,9 @@ def ridge_continue_candidates(record, info:EndpointInfo, geo, *, beam_width=16, 
                 if not (0<=y<H and 0<=x<W) or base[y,x] or (y,x) in b.path:continue
                 mv=np.array([float(dx),float(dy)],np.float32);mv/=np.linalg.norm(mv)+1e-8
                 cont=float(np.dot(prev,mv));gcompat=float(np.dot(gv,mv));rv=float(ridge[y,x])
+                # Prefer a coherent dark ridge; Base probability is only a weak tie-breaker because this is an FN region.
                 local=.46*rv+.24*cont+.24*gcompat+.06*float(rp[y,x])
+                # Strong U-turns are structurally implausible.
                 if cont<-.25:local-=.35
                 cand.append((local,y,x,rv,mv))
             cand.sort(reverse=True,key=lambda z:z[0])
@@ -214,6 +223,7 @@ def ridge_continue_candidates(record, info:EndpointInfo, geo, *, beam_width=16, 
                 out.append({'family':'v54_ridge_continue','add':add,'path':add.copy(),'path_yx':b.path,'source_yx':info.anchor_yx,'source_endpoint_yx':info.endpoint_yx,
                             'source_component':info.component_id,'source_score':info.source_score,'score':float(b.score/max(L,1)),'mean_ridge':float(vals.mean()) if vals.size else 0.,
                             'min_ridge':float(vals.min()) if vals.size else 0.,'length':int(add.sum()),'connects_foreign':False,'learned_stop':False})
+    # Deduplicate exact additions.
     seen=set();keep=[]
     for z in sorted(out,key=lambda q:(q['score'],q['mean_ridge']),reverse=True):
         k=np.packbits(z['add']).tobytes()
@@ -256,7 +266,9 @@ def bidirectional_ridge_meet_candidates(record, a:EndpointInfo, b:EndpointInfo, 
             eb=tuple(map(int,pb['path_yx'][-1]));gap=float(np.linalg.norm(np.asarray(ea,float)-np.asarray(eb,float)))
             if gap>join_radius:continue
             join=_line_pixels(ea,eb,base.shape)
+            # Connecting bridge must not cross a third/existing component except the two boundary anchors.
             if np.any(join&base):continue
+            # Final tangents should point roughly toward one another.
             def lastv(z):
                 p=z['path_yx'];
                 if len(p)<2:return np.array([0.,0.])

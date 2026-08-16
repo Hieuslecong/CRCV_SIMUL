@@ -15,6 +15,7 @@ def features(image,prob,base,thr,ep,hist=None):
     r=5;y0=max(0,y-r);y1=min(base.shape[0],y+r+1);x0=max(0,x-r);x1=min(base.shape[1],x+r+1);reg=np.zeros_like(base,bool);reg[y0:y1,x0:x1]=1
     vals=lambda a:[float(a[reg].mean()),float(a[reg].std())]
     v=hist[-1]-hist[-2];# outward vector is last history direction
+    # evidence immediately ahead of endpoint
     vv=v/(np.linalg.norm(v)+1e-8);ahead=[]
     for d in range(2,11):
         xx=int(round(x+vv[0]*d));yy=int(round(y+vv[1]*d))

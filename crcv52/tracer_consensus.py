@@ -11,6 +11,7 @@ def annotate_consensus(row):
         shape=gs[0]['add'].shape;support=np.zeros(shape,np.float32)
         for z in gs:support+=z['add'].astype(np.float32)
         denom=max(len(gs),1)
+        # group-relative scalar distributions for core beam signals
         core=['score','min_identity','stop_prob','mean_field','min_field','length']
         vals={k:np.asarray([float(z[k]) for z in gs],np.float32) for k in core}
         med={k:float(np.median(v)) for k,v in vals.items()};sd={k:float(np.std(v)+1e-6) for k,v in vals.items()}

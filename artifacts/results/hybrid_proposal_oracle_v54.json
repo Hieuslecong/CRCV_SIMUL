@@ -15,13 +15,21 @@
       "pool": 1427,
       "pairs": 3,
       "positive_pool": 17,
-      "selected_families": ["v52b","v52b"],
+      "selected_families": [
+        "v52b",
+        "v52b"
+      ],
       "tp": 12,
       "fp": 0,
       "precision": 0.9999999999166667,
       "skeleton_hit": 9,
       "missing_skeleton": 10,
-      "per_family_positive": {"v52b":17,"iterative":0,"ridge_continue":0,"bidir_connect":0}
+      "per_family_positive": {
+        "v52b": 17,
+        "iterative": 0,
+        "ridge_continue": 0,
+        "bidir_connect": 0
+      }
     },
     {
       "index": 1,
@@ -35,7 +43,12 @@
       "precision": 0.0,
       "skeleton_hit": 0,
       "missing_skeleton": 60,
-      "per_family_positive": {"v52b":0,"iterative":0,"ridge_continue":0,"bidir_connect":0}
+      "per_family_positive": {
+        "v52b": 0,
+        "iterative": 0,
+        "ridge_continue": 0,
+        "bidir_connect": 0
+      }
     },
     {
       "index": 2,
@@ -43,13 +56,24 @@
       "pool": 417,
       "pairs": 1,
       "positive_pool": 143,
-      "selected_families": ["iterative","ridge_continue","iterative","ridge_continue","ridge_continue"],
+      "selected_families": [
+        "iterative",
+        "ridge_continue",
+        "iterative",
+        "ridge_continue",
+        "ridge_continue"
+      ],
       "tp": 72,
       "fp": 0,
       "precision": 0.9999999999861111,
       "skeleton_hit": 35,
       "missing_skeleton": 47,
-      "per_family_positive": {"v52b":0,"iterative":98,"ridge_continue":45,"bidir_connect":0}
+      "per_family_positive": {
+        "v52b": 0,
+        "iterative": 98,
+        "ridge_continue": 45,
+        "bidir_connect": 0
+      }
     },
     {
       "index": 3,
@@ -57,13 +81,20 @@
       "pool": 1343,
       "pairs": 3,
       "positive_pool": 44,
-      "selected_families": ["v52b"],
+      "selected_families": [
+        "v52b"
+      ],
       "tp": 9,
       "fp": 0,
       "precision": 0.9999999998888889,
       "skeleton_hit": 9,
       "missing_skeleton": 9,
-      "per_family_positive": {"v52b":16,"iterative":8,"ridge_continue":20,"bidir_connect":0}
+      "per_family_positive": {
+        "v52b": 16,
+        "iterative": 8,
+        "ridge_continue": 20,
+        "bidir_connect": 0
+      }
     },
     {
       "index": 4,
@@ -71,13 +102,20 @@
       "pool": 1221,
       "pairs": 0,
       "positive_pool": 11,
-      "selected_families": ["iterative"],
+      "selected_families": [
+        "iterative"
+      ],
       "tp": 4,
       "fp": 0,
       "precision": 0.99999999975,
       "skeleton_hit": 2,
       "missing_skeleton": 35,
-      "per_family_positive": {"v52b":0,"iterative":11,"ridge_continue":0,"bidir_connect":0}
+      "per_family_positive": {
+        "v52b": 0,
+        "iterative": 11,
+        "ridge_continue": 0,
+        "bidir_connect": 0
+      }
     },
     {
       "index": 5,
@@ -91,7 +129,12 @@
       "precision": 0.0,
       "skeleton_hit": 0,
       "missing_skeleton": 0,
-      "per_family_positive": {"v52b":0,"iterative":0,"ridge_continue":0,"bidir_connect":0}
+      "per_family_positive": {
+        "v52b": 0,
+        "iterative": 0,
+        "ridge_continue": 0,
+        "bidir_connect": 0
+      }
     },
     {
       "index": 6,
@@ -99,13 +142,24 @@
       "pool": 1313,
       "pairs": 1,
       "positive_pool": 151,
-      "selected_families": ["ridge_continue","ridge_continue","v52b","iterative","v52b"],
+      "selected_families": [
+        "ridge_continue",
+        "ridge_continue",
+        "v52b",
+        "iterative",
+        "v52b"
+      ],
       "tp": 108,
       "fp": 3,
       "precision": 0.9729729729642074,
       "skeleton_hit": 71,
       "missing_skeleton": 93,
-      "per_family_positive": {"v52b":39,"iterative":27,"ridge_continue":85,"bidir_connect":0}
+      "per_family_positive": {
+        "v52b": 39,
+        "iterative": 27,
+        "ridge_continue": 85,
+        "bidir_connect": 0
+      }
     },
     {
       "index": 7,
@@ -113,13 +167,20 @@
       "pool": 121,
       "pairs": 0,
       "positive_pool": 10,
-      "selected_families": ["ridge_continue"],
+      "selected_families": [
+        "ridge_continue"
+      ],
       "tp": 15,
       "fp": 1,
       "precision": 0.9374999999414062,
       "skeleton_hit": 18,
       "missing_skeleton": 62,
-      "per_family_positive": {"v52b":0,"iterative":0,"ridge_continue":10,"bidir_connect":0}
+      "per_family_positive": {
+        "v52b": 0,
+        "iterative": 0,
+        "ridge_continue": 10,
+        "bidir_connect": 0
+      }
     },
     {
       "index": 8,
@@ -127,13 +188,24 @@
       "pool": 1744,
       "pairs": 9,
       "positive_pool": 321,
-      "selected_families": ["ridge_continue","v52b","ridge_continue","iterative","v52b"],
+      "selected_families": [
+        "ridge_continue",
+        "v52b",
+        "ridge_continue",
+        "iterative",
+        "v52b"
+      ],
       "tp": 116,
       "fp": 0,
       "precision": 0.9999999999913792,
       "skeleton_hit": 40,
       "missing_skeleton": 178,
-      "per_family_positive": {"v52b":66,"iterative":119,"ridge_continue":132,"bidir_connect":4}
+      "per_family_positive": {
+        "v52b": 66,
+        "iterative": 119,
+        "ridge_continue": 132,
+        "bidir_connect": 4
+      }
     },
     {
       "index": 9,
@@ -141,13 +213,20 @@
       "pool": 943,
       "pairs": 2,
       "positive_pool": 39,
-      "selected_families": ["ridge_continue"],
+      "selected_families": [
+        "ridge_continue"
+      ],
       "tp": 16,
       "fp": 0,
       "precision": 0.9999999999375,
       "skeleton_hit": 4,
       "missing_skeleton": 8,
-      "per_family_positive": {"v52b":0,"iterative":0,"ridge_continue":39,"bidir_connect":0}
+      "per_family_positive": {
+        "v52b": 0,
+        "iterative": 0,
+        "ridge_continue": 39,
+        "bidir_connect": 0
+      }
     }
   ]
 }

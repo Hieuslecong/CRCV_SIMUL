@@ -18,18 +18,101 @@
     "normal_added": 50,
     "accepted": 11,
     "details": [
-      {"image":"training_BCL_c1006.png","tp":0,"fp":5,"skeleton_hit":0,"accepted":2,"families":["iterative","v52b"]},
-      {"image":"training_BCL_c1108.png","tp":0,"fp":7,"skeleton_hit":0,"accepted":2,"families":["iterative","v52b"]},
-      {"image":"training_BCL_c1013.png","tp":0,"fp":11,"skeleton_hit":0,"accepted":2,"families":["v52b","iterative"]},
-      {"image":"training_BCL_c1078.png","tp":0,"fp":7,"skeleton_hit":0,"accepted":2,"families":["v52b","v52b_topk"]},
-      {"image":"training_BCL_c1042.png","tp":0,"fp":12,"skeleton_hit":0,"accepted":1,"families":["v52b_topk"]},
-      {"image":"training_BCL_c1109.png","tp":6,"fp":0,"skeleton_hit":0,"accepted":2,"families":["v52b_topk","iterative"]},
-      {"image":"2 (10043).jpg","normal_added":21,"accepted":2},
-      {"image":"2 (1006).jpg","normal_added":4,"accepted":1},
-      {"image":"2 (10011).jpg","normal_added":6,"accepted":1},
-      {"image":"2 (10092).jpg","normal_added":7,"accepted":2},
-      {"image":"2 (10034).jpg","normal_added":6,"accepted":2},
-      {"image":"2 (10078).jpg","normal_added":6,"accepted":2}
+      {
+        "image": "training_BCL_c1006.png",
+        "tp": 0,
+        "fp": 5,
+        "skeleton_hit": 0,
+        "accepted": 2,
+        "families": [
+          "iterative",
+          "v52b"
+        ]
+      },
+      {
+        "image": "training_BCL_c1108.png",
+        "tp": 0,
+        "fp": 7,
+        "skeleton_hit": 0,
+        "accepted": 2,
+        "families": [
+          "iterative",
+          "v52b"
+        ]
+      },
+      {
+        "image": "training_BCL_c1013.png",
+        "tp": 0,
+        "fp": 11,
+        "skeleton_hit": 0,
+        "accepted": 2,
+        "families": [
+          "v52b",
+          "iterative"
+        ]
+      },
+      {
+        "image": "training_BCL_c1078.png",
+        "tp": 0,
+        "fp": 7,
+        "skeleton_hit": 0,
+        "accepted": 2,
+        "families": [
+          "v52b",
+          "v52b_topk"
+        ]
+      },
+      {
+        "image": "training_BCL_c1042.png",
+        "tp": 0,
+        "fp": 12,
+        "skeleton_hit": 0,
+        "accepted": 1,
+        "families": [
+          "v52b_topk"
+        ]
+      },
+      {
+        "image": "training_BCL_c1109.png",
+        "tp": 6,
+        "fp": 0,
+        "skeleton_hit": 0,
+        "accepted": 2,
+        "families": [
+          "v52b_topk",
+          "iterative"
+        ]
+      },
+      {
+        "image": "2 (10043).jpg",
+        "normal_added": 21,
+        "accepted": 2
+      },
+      {
+        "image": "2 (1006).jpg",
+        "normal_added": 4,
+        "accepted": 1
+      },
+      {
+        "image": "2 (10011).jpg",
+        "normal_added": 6,
+        "accepted": 1
+      },
+      {
+        "image": "2 (10092).jpg",
+        "normal_added": 7,
+        "accepted": 2
+      },
+      {
+        "image": "2 (10034).jpg",
+        "normal_added": 6,
+        "accepted": 2
+      },
+      {
+        "image": "2 (10078).jpg",
+        "normal_added": 6,
+        "accepted": 2
+      }
     ]
   },
   "qualified": false

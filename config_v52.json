@@ -4,13 +4,41 @@
   "image_size": 256,
   "base_model_input_size": 128,
   "base_threshold_source": "debug_val_clean_native_match",
-  "geometry": {"type":"xy_mlp","history_points":6,"future_chunk":6,"horizons":[6,12,18,24],"angles_deg":[-8,0,8],"corridor_radius":6},
-  "centerline_field": {"selected_variant":"v52b_rgb_plus_handcrafted_ridge","input_channels":12,"patch_size":64,"params":3073,"target":"missing_gt_skeleton_attraction_only","global_context_variant_v52d":"rejected_external_oracle_worse"},
-  "decoder": {"adaptive_multi_target":true,"continue_only":true,"foreign_component_contact":"reject"},
-  "verifier": {"type":"random_forest_diagnostic","field_margin_gate":true,"qualified":false},
+  "geometry": {
+    "type": "xy_mlp",
+    "history_points": 6,
+    "future_chunk": 6,
+    "horizons": [6, 12, 18, 24],
+    "angles_deg": [-8, 0, 8],
+    "corridor_radius": 6
+  },
+  "centerline_field": {
+    "selected_variant": "v52b_rgb_plus_handcrafted_ridge",
+    "input_channels": 12,
+    "patch_size": 64,
+    "params": 3073,
+    "target": "missing_gt_skeleton_attraction_only",
+    "global_context_variant_v52d": "rejected_external_oracle_worse"
+  },
+  "decoder": {
+    "adaptive_multi_target": true,
+    "continue_only": true,
+    "foreign_component_contact": "reject"
+  },
+  "verifier": {
+    "type": "random_forest_diagnostic",
+    "field_margin_gate": true,
+    "qualified": false
+  },
   "suppression_enabled": false,
   "width_enabled": false,
   "joint_training_enabled": false,
   "final_test": "SEALED_NOT_USED",
-  "qualification": {"centerline_precision_min":0.85,"missing_skeleton_recovery_t1_min":0.30,"mask_added_precision_min_after_width":0.85,"natural_fn_recovery_min_after_width":0.10,"normal_added_pixels":0}
+  "qualification": {
+    "centerline_precision_min": 0.85,
+    "missing_skeleton_recovery_t1_min": 0.30,
+    "mask_added_precision_min_after_width": 0.85,
+    "natural_fn_recovery_min_after_width": 0.10,
+    "normal_added_pixels": 0
+  }
 }

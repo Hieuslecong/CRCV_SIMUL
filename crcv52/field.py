@@ -36,11 +36,14 @@ def candidate_tensor(image,prob,base,thr,q,gt=None,sigma=1.5,target_skeleton=Non
     if gt is None:return X,(y0,x0)
     gsk=skeletonize(gt.astype(bool)) if target_skeleton is None else target_skeleton.astype(bool)
     gskp=extract(gsk.astype(np.uint8),y0,x0,ps).astype(bool);dist=distance_transform_edt(~gskp);target=np.exp(-(dist**2)/(2*sigma*sigma)).astype(np.float32)*corr.astype(np.float32)
+    # A small source anchor stabilizes continuity but existing Base skeleton is not a positive field target.
     target=np.maximum(target,.35*src* corr.astype(np.float32))
     return X,target,(y0,x0)
 def field_loss(logit,target):
+    # Continuous attraction target, strongly weight near-centerline pixels.
     w=1+6*target;b=F.binary_cross_entropy_with_logits(logit,target,weight=w)
-    p=torch.sigmoid(logit);hi=target>.7;lo=target<.2
+    p=torch.sigmoid(logit);# ranking: high-target pixels must outrank off-center corridor pixels
+    hi=target>.7;lo=target<.2
     if hi.any() and lo.any():
         hp=p[hi];lp=p[lo];n=min(hp.numel(),lp.numel(),2048);rank=F.relu(.25-hp[:n]+lp[:n]).mean()
     else:rank=logit.sum()*0
@@ -50,11 +53,13 @@ def infer_candidate(model,image,prob,base,thr,q):
     X,(y0,x0)=candidate_tensor(image,prob,base,thr,q,None)
     with torch.no_grad():f=torch.sigmoid(model(torch.tensor(X[None],dtype=torch.float32)))[0].numpy()
     corr=X[5]>.5;b=X[4]>.5;pd=X[6];src=X[7]>.5
+    # Target is selected by learned field in a terminal disk around geometry endpoint.
     end=q['prior'][-1];ey=int(round(end[1]-y0));ex=int(round(end[0]-x0));term=np.zeros_like(corr,np.uint8)
     if 0<=ey<PATCH and 0<=ex<PATCH:cv2.circle(term,(ex,ey),6,1,-1)
     term=term.astype(bool)&corr&~b
     if not term.any():return None
     vals=np.where(term,f,-1);ty,tx=np.unravel_index(np.argmax(vals),vals.shape);target_score=float(f[ty,tx])
+    # Continue in background; only source anchor pixels are allowed from existing Base.
     allowed=corr&~b;allowed|=src
     from .recovery import route
     sy,sx=q['source_yx'];ls=(sy-y0,sx-x0)
