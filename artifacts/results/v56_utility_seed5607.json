@@ -1,0 +1,12 @@
+{
+  "schema": "crcv-v5.6-source-gated-utility-ranker-trial-1",
+  "seed": 5607,
+  "epoch": 8,
+  "source_gate_threshold_from_module": 0.7223853020579419,
+  "cal_candidates_after_gate": 3671,
+  "cal_positive": 63,
+  "cal_diag": {"auc": 0.8391581318410587, "ap": 0.0784553962320803},
+  "calibration": {"absolute_threshold": 0.9833149113904072, "margin_threshold": 0.000029617375340955004, "max_accept_per_image": 2, "added_precision": 0.15277777777565585, "core_gap_recovery": 0.0, "tp": 11, "fp": 61, "core_hit": 0, "core_total": 70, "normal_added": 0, "accepted": 1},
+  "qualified": false,
+  "final_test": "SEALED_NOT_USED"
+}
