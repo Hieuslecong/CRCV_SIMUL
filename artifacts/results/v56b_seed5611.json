@@ -1,0 +1,17 @@
+{
+  "schema": "crcv-v5.6b-oof-controlled-source-gated-utility-trial-1",
+  "seed": 5611,
+  "epoch": 8,
+  "source_gate_threshold_from_module": 0.7223853020579419,
+  "controlled_samples": 1326,
+  "controlled_groups": 309,
+  "natural_candidates": 3882,
+  "natural_positive": 421,
+  "natural_groups": 29,
+  "cal_candidates_after_gate": 3671,
+  "cal_positive": 63,
+  "cal_diag": {"auc": 0.5935267307218527, "ap": 0.022827367874618802},
+  "calibration": {"absolute_threshold": 0.9694285592233078, "margin_threshold": 0.006469737287225394, "max_accept_per_image": 2, "added_precision": 0.99999999975, "core_gap_recovery": 0.028571428571020407, "tp": 4, "fp": 0, "core_hit": 2, "core_total": 70, "normal_added": 0, "accepted": 1},
+  "qualified": false,
+  "final_test": "SEALED_NOT_USED"
+}
