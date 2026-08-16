@@ -1,0 +1,69 @@
+{
+  "schema": "crcv-v5.5-runtime-all-components-reaudit-1",
+  "cal_components_all": 340,
+  "real_val_components_all": 537,
+  "results": {
+    "prob_mean_only": {
+      "calibration": {
+        "threshold": 0.630070031963199,
+        "true_pixel_removal": 0.001957311958243829,
+        "false_pixel_removal": 0.4587892049598718,
+        "removed_components": 314
+      },
+      "cal_gate_pass": true,
+      "real_val": {
+        "true_pixel_removal": 0.007594788806449285,
+        "false_pixel_removal": 0.49503379900855354,
+        "dice_delta": 0.032661752169913544,
+        "cldice_delta": 0.10791009176403729,
+        "ccerr_delta": -11.5,
+        "precision_delta": 0.040542588302915024,
+        "recall_delta": -0.003702883028101611,
+        "normal_pixel_removal": 0.9151351133012515,
+        "normal_component_reduction": 0.9923076923051479
+      }
+    },
+    "prob_mean_sim_veto": {
+      "calibration": {
+        "score_threshold": 0.6274598265245179,
+        "sim_max_for_removal": 0.8086980581283569,
+        "true_pixel_removal": 0.0019573119934648275,
+        "false_pixel_removal": 0.4516964852809906,
+        "removed_components": 311
+      },
+      "cal_gate_pass": true,
+      "real_val": {
+        "true_pixel_removal": 0.007594788806449285,
+        "false_pixel_removal": 0.4944749887336549,
+        "dice_delta": 0.032661752169913544,
+        "cldice_delta": 0.10791009176403729,
+        "ccerr_delta": -11.5,
+        "precision_delta": 0.040542588302915024,
+        "recall_delta": -0.003702883028101611,
+        "normal_pixel_removal": 0.9138829421981293,
+        "normal_component_reduction": 0.98461538461286
+      }
+    },
+    "independent_ensemble": {
+      "calibration": {
+        "threshold": 0.3283387615242634,
+        "true_pixel_removal": 0.001957311958243829,
+        "false_pixel_removal": 0.5494604995095312,
+        "removed_components": 321
+      },
+      "cal_gate_pass": true,
+      "real_val": {
+        "true_pixel_removal": 0.006484781211660543,
+        "false_pixel_removal": 0.4924200090130601,
+        "dice_delta": 0.025032413271241716,
+        "cldice_delta": 0.07604132101704447,
+        "ccerr_delta": -10.6,
+        "precision_delta": 0.03419817493364806,
+        "recall_delta": -0.0019449795534107529,
+        "normal_pixel_removal": 0.9581128569697072,
+        "normal_component_reduction": 0.9948717948692439
+      }
+    }
+  },
+  "p0": "prior evaluations used ComponentBankDataset at runtime, which excluded GT-ambiguous components; this reaudit enumerates all Base components without GT filtering"
+}
