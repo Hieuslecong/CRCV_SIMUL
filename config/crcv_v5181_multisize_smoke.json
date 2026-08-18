@@ -1,0 +1,18 @@
+{
+  "version": "v5.18.1-multisize-smoke",
+  "resolutions": [128, 256],
+  "models": [
+    "TinyUNet",
+    "FastSCNNLite",
+    "BiSeNetTiny",
+    "MobileNetV3SmallSeg",
+    "DSUNetLite"
+  ],
+  "action_scorer_seeds": [1337, 2027, 31415],
+  "selection": "CAL-only",
+  "runtime_gt": "FORBIDDEN",
+  "regenerate_candidates_per_resolution": true,
+  "retrain_ribbon_per_resolution": true,
+  "retrain_authenticity_per_resolution": true,
+  "final_test": "SEALED_NOT_READ"
+}
