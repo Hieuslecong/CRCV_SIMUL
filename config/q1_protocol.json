@@ -1,0 +1,14 @@
+{
+  "version": "5.19-q1",
+  "resolutions": [128, 256],
+  "full_training_seeds": [1337, 2027, 31415],
+  "development_final_test": "SEALED",
+  "min_backbones": 5,
+  "min_datasets": 3,
+  "cross_dataset_routes_min": 2,
+  "comparators_required": ["Base", "Morphology", "StripCuts_or_equivalent_refiner", "CRCV-V5.18.1"],
+  "statistics": ["paired bootstrap 95% CI", "paired permutation test", "Holm correction"],
+  "latency": ["CPU", "edge device"],
+  "selection_rule": "architecture/checkpoint/threshold selected on train/CAL only; test is one-shot after freeze",
+  "runtime_gt": false
+}
