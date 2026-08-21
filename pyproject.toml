@@ -3,9 +3,9 @@ requires = ["setuptools>=68", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "crcv52"
-version = "5.4.0"
-description = "CRCV V5.4 CoreGap hybrid proposal research prototype"
+name = "crcv"
+version = "5.19.0"
+description = "CRCV corrective crack-segmentation refinement and publication evidence tooling"
 requires-python = ">=3.10"
 dependencies = [
   "numpy",
@@ -14,11 +14,15 @@ dependencies = [
   "scikit-learn",
   "opencv-python-headless",
   "torch",
+  "lightgbm",
 ]
+
+[project.optional-dependencies]
+test = ["pytest>=8"]
 
 [tool.setuptools.packages.find]
 where = ["."]
-include = ["crcv52*"]
+include = ["crcv52*", "crcv_q1*"]
 
 [tool.pytest.ini_options]
 pythonpath = ["."]
