@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "crcv"
-version = "5.19.0"
+version = "5.20.3"
 description = "CRCV corrective crack-segmentation refinement and publication evidence tooling"
 requires-python = ">=3.10"
 dependencies = [
