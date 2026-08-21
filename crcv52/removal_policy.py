@@ -136,13 +136,15 @@ def sample_keep_remove_training(image, probability, base_mask, gt_mask,
                                 remove_min_distance_ratio: float = 1.25,
                                 supervision_mode: str = "detached_component",
                                 hard_keep_repeat: int = 3,
+                                remove_exclusion_radius: int | None = None,
+                                require_detached_remove: bool | None = None,
                                 seed: int = 1337) -> tuple[np.ndarray, np.ndarray, list[str]]:
     """Scale-aware KEEP-heavy sampling with explicit IGNORE supervision.
 
-    Stable V5.20.3 defaults keep attached FP components as IGNORE and learn REMOVE
-    from scale-normalized detached components. Distal-pixel attached supervision is
-    available only as an explicit ablation because real-data review found it too
-    aggressive for the canonical safety path.
+    Canonical V5.20.3 uses ``detached_component`` supervision. The legacy keyword
+    arguments ``remove_exclusion_radius`` and ``require_detached_remove`` are
+    accepted for backward compatibility only; canonical training does not depend
+    on an absolute-pixel exclusion radius.
     """
     if max_per_class is not None:
         max_keep = int(max_per_class)
@@ -151,6 +153,12 @@ def sample_keep_remove_training(image, probability, base_mask, gt_mask,
         raise ValueError("sample limits must be non-negative")
     if not 0.0 <= float(boundary_keep_fraction) <= 1.0:
         raise ValueError("boundary_keep_fraction must be in [0,1]")
+    if remove_exclusion_radius is not None and int(remove_exclusion_radius) < 0:
+        raise ValueError("remove_exclusion_radius must be non-negative or None")
+    if require_detached_remove is False:
+        supervision_mode = "distal_pixel"
+    elif require_detached_remove is True:
+        supervision_mode = "detached_component"
 
     Xmap, names = build_removal_features(image, probability, base_mask)
     base = np.asarray(base_mask, bool); gt = np.asarray(gt_mask, bool)
