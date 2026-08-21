@@ -163,3 +163,15 @@ def test_qualification_separates_safety_from_fprr_effect_size():
                                         'true_removed':0,'fp_removed':0})
     assert safe_small['status'] == 'ACTIVE'
     assert exact_noop['status'] == 'NO_OP'
+
+
+def test_operating_point_uses_constraints_not_weighted_utility():
+    from crcv52.operating_point import select_conservative_pixel_threshold
+    metrics = {
+        .8: {'delta_dice':.01,'delta_recall':0.,'delta_crack_iou':.01,'tcrr':.002,'fprr':.20,
+             'true_removed':1,'fp_removed':20},
+        .9: {'delta_dice':.001,'delta_recall':0.,'delta_crack_iou':.001,'tcrr':0.,'fprr':.01,
+             'true_removed':0,'fp_removed':1},
+    }
+    op = select_conservative_pixel_threshold(lambda t: metrics[t], [.8,.9])
+    assert op.parameters == .9
