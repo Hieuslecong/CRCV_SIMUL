@@ -5,7 +5,7 @@ from dataclasses import dataclass
 
 @dataclass(frozen=True)
 class RemoveQualificationConfig:
-    min_delta_dice: float = -0.001
+    min_delta_dice: float = 0.0
     min_delta_recall: float = -0.002
     max_tcrr: float = 0.003
     min_fprr: float = 0.005
@@ -13,11 +13,12 @@ class RemoveQualificationConfig:
 
 def qualify_remove_policy(metrics: dict,
                           config: RemoveQualificationConfig | None = None) -> dict:
-    """Qualification gate evaluated on VAL after CAL threshold selection.
+    """Fail-closed VAL qualification after CAL threshold selection.
 
-    The gate is intentionally fail-closed. A policy that improves Dice but removes
-    too much already-correct crack, or has negligible FP-removal utility, is not
-    enabled at runtime. TEST is never used by this function.
+    A policy is enabled only when it is non-regressive in Dice, keeps Recall loss
+    within the safety floor, removes at most a small fraction of already-correct
+    crack (TCRR), and removes enough false-positive mass to justify mutation.
+    TEST must never be used by this gate.
     """
     cfg = config or RemoveQualificationConfig()
     required = ("delta_dice", "delta_recall", "tcrr", "fprr")
