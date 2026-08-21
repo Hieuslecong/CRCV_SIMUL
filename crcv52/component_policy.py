@@ -15,8 +15,11 @@ class ComponentRemovalConfig:
     """
     max_area_fraction: float = 0.001
     max_mean_probability: float = 0.85
-    max_skeleton_length_fraction: float = 0.025
-    max_bbox_diagonal_fraction: float = 0.04
+    # Defaults allow compact tiny blobs at low resolution while still rejecting
+    # elongated crack-like components. Scientific runners may calibrate stricter
+    # values on CAL; no absolute pixel size is required by the canonical path.
+    max_skeleton_length_fraction: float = 0.05
+    max_bbox_diagonal_fraction: float = 0.08
     max_elongation: float = 4.0
     max_total_remove_fraction: float = 0.03
     max_foreground_remove_fraction: float = 0.10
