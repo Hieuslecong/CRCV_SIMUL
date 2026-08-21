@@ -1,0 +1,44 @@
+{
+  "artifact": "foreground_authenticity.pkl",
+  "sha256": "5150a08891b9b62d4472509344eb97139dc3c286222c1b0bc30e3712211470b2",
+  "size_bytes": 362019,
+  "pickle_protocol": 4,
+  "model_type": "lightgbm.sklearn.LGBMClassifier",
+  "n_features_in": 13,
+  "n_estimators": 200,
+  "classes": [0, 1],
+  "random_state": 1856,
+  "seed_relation_from_v518_fullseed": "random_state = CRCV_FULL_SEED + 519",
+  "inferred_full_seed": 1337,
+  "expected_feature_contract": [
+    "prob",
+    "blur_prob",
+    "gray",
+    "gray_minus_blur_gray",
+    "gray_gradient",
+    "blackhat_evidence",
+    "dark_evidence",
+    "edge_gradient_evidence",
+    "base_edt",
+    "distance_to_base_skeleton",
+    "connected_component_area_fraction",
+    "normalized_y",
+    "normalized_x"
+  ],
+  "structural_compatibility_smoke": {
+    "status": "PASS",
+    "resolutions": [128, 256],
+    "synthetic_input_seeds": [1337, 2027, 31415],
+    "cases": 6,
+    "finite_probabilities": true,
+    "probability_range_valid": true,
+    "suppression_output_shape_valid": true,
+    "removed_subset_of_frozen_base": true,
+    "scientific_evidence": false
+  },
+  "notes": [
+    "Artifact was supplied separately after the original audit bundle.",
+    "The model configuration matches fit_authenticity_model in v518_fullseed.py for CRCV_FULL_SEED=1337.",
+    "This metadata does not establish training-dataset provenance or external-test independence."
+  ]
+}
