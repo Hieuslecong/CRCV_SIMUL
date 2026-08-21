@@ -1,14 +1,20 @@
 {
-  "version": "5.19-q1",
+  "version": "5.19-q1-v2",
+  "status_name": "EVIDENCE_COMPLETE",
   "resolutions": [128, 256],
   "full_training_seeds": [1337, 2027, 31415],
-  "development_final_test": "SEALED",
   "min_backbones": 5,
+  "min_reference_backbones": 2,
   "min_datasets": 3,
+  "min_external_datasets": 1,
   "cross_dataset_routes_min": 2,
-  "comparators_required": ["Base", "Morphology", "StripCuts_or_equivalent_refiner", "CRCV-V5.18.1"],
-  "statistics": ["paired bootstrap 95% CI", "paired permutation test", "Holm correction"],
-  "latency": ["CPU", "edge device"],
-  "selection_rule": "architecture/checkpoint/threshold selected on train/CAL only; test is one-shot after freeze",
-  "runtime_gt": false
+  "comparators_required": ["base", "morphology", "stripcuts_or_equivalent_published_refiner", "crcv_v5181"],
+  "primary_metrics": ["dice", "crack_iou"],
+  "statistics": ["paired cluster bootstrap 95% CI", "paired cluster sign permutation", "Holm correction"],
+  "data_integrity": ["lineage-disjoint", "historical-exposure guard", "fresh external final holdout"],
+  "provenance": ["git commit", "dataset manifest SHA256", "split manifest SHA256", "config SHA256", "artifact SHA256"],
+  "runtime_gt": false,
+  "runtime_gt_mutation_test": "required",
+  "selection_rule": "architecture/checkpoint/threshold selected on development data only; fresh external final test is one-shot after freeze",
+  "edge_latency": "required only when edge/lightweight deployment is claimed"
 }
