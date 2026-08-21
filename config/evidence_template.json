@@ -1,0 +1,47 @@
+{
+  "datasets": ["dataset_a", "dataset_b", "dataset_c"],
+  "backbones": ["unet_ref", "deeplabv3p_ref", "fastscnn", "bisenet", "dsunet"],
+  "reference_backbones": ["unet_ref", "deeplabv3p_ref"],
+  "resolutions": [128, 256],
+  "full_training_seeds": [1337, 2027, 31415],
+  "cross_dataset_routes": ["dataset_a+dataset_b->dataset_c", "dataset_a+dataset_c->dataset_b"],
+  "comparators": ["base", "morphology", "stripcuts", "crcv_v5181"],
+  "published_refiner": "stripcuts",
+  "historical_exposure_audit": {
+    "status": "BLOCKED",
+    "artifacts": []
+  },
+  "final_test_state": "SEALED_FRESH_EXTERNAL",
+  "external": {
+    "datasets_completed": 0,
+    "fresh_unexposed": false,
+    "artifacts": []
+  },
+  "lobo": {
+    "held_out_backbones": [],
+    "artifacts": []
+  },
+  "runtime_gt_mutation_test": {
+    "status": "BLOCKED",
+    "artifacts": []
+  },
+  "run_records": [],
+  "aggregate": {
+    "mean_delta_dice": null,
+    "mean_delta_crack_iou": null,
+    "positive_pair_rate": null,
+    "worst_delta_dice": null
+  },
+  "statistics": {
+    "dice": {"ci_low": null, "holm_p": null, "method": "paired_cluster_bootstrap"},
+    "crack_iou": {"ci_low": null, "holm_p": null, "method": "paired_cluster_bootstrap"}
+  },
+  "latency": {
+    "cpu": {"median_ms": null, "artifacts": []}
+  },
+  "structural_metrics": {},
+  "claims": {
+    "edge": false,
+    "topology_aware": false
+  }
+}
