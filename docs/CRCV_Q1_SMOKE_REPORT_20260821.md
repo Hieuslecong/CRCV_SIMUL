@@ -4,7 +4,7 @@ Branch: `feature/crcv-q1-redesign-v2`
 
 ## Decision
 
-**Engineering smoke: PASS. Scientific retraining smoke: BLOCKED by missing real data/checkpoints.**
+**Engineering smoke: PASS. Scientific retraining smoke: BLOCKED by unavailable real-data/upstream assets in the active execution environment.**
 
 This report deliberately separates structural/synthetic smoke tests from publication evidence. Synthetic data are used only to detect crashes, shape errors, non-finite losses/gradients and unsafe suppression behavior. They are not used for accuracy claims.
 
@@ -101,13 +101,42 @@ Results:
 
 The redesign never removed pixels outside the old eligible removal set in this smoke and respected the 20% foreground budget.
 
-## 6. Bundle integrity smoke
+## 6. Supplied foreground-authenticity artifact smoke
+
+A separately supplied `foreground_authenticity.pkl` was inspected before loading and then loaded through a restricted allow-list unpickler.
+
+Artifact metadata:
+
+- SHA256: `5150a08891b9b62d4472509344eb97139dc3c286222c1b0bc30e3712211470b2`;
+- size: 362,019 bytes;
+- pickle protocol: 4;
+- model: `lightgbm.sklearn.LGBMClassifier`;
+- features: 13;
+- estimators: 200;
+- classes: `[0, 1]`;
+- `random_state=1856`.
+
+`v518_fullseed.py` constructs this model with `random_state=SEED+519`, therefore the supplied artifact is configuration-consistent with **CRCV full seed 1337**.
+
+A structural compatibility smoke rebuilt the exact 13-feature foreground-authenticity contract and evaluated the artifact on synthetic crack-like records at 128 and 256 for input seeds 1337/2027/31415.
+
+Result: **6/6 PASS**.
+
+All cases produced finite probabilities in `[0,1]`, valid output shapes, and suppression removed pixels only inside Frozen Base. This is compatibility evidence only, not segmentation-performance evidence.
+
+Provenance record committed at:
+
+`artifacts/provenance/foreground_authenticity_seed1337.json`
+
+Important limitation: the supplied pickle proves model/configuration compatibility, but does **not** by itself prove the training-dataset lineage or absence of historical evaluation-set exposure.
+
+## 7. Bundle integrity smoke
 
 `sha256sum -c SHA256SUMS.txt` was executed for the supplied audit bundle.
 
 Result: **all entries PASS**.
 
-## 7. Historical split-guard smoke
+## 8. Historical split-guard smoke
 
 `split_assignment.csv` contains 320 rows. Treating the historical `test` role as exposed and attempting to reinterpret the current test as a fresh final holdout produced:
 
@@ -125,31 +154,29 @@ Historical transition counts:
 
 Therefore the supplied current test split must **not** be certified as `SEALED_FRESH_EXTERNAL`.
 
-## 8. Full real-data V5.17 → V5.18 → V5.18.1 smoke
+## 9. Full real-data V5.17 → V5.18 → V5.18.1 smoke
 
 Attempted entrypoint execution for seeds `1337`, `2027`, `31415` and resolutions `128`, `256`.
 
-Status: **BLOCKED BEFORE TRAINING**.
+Status in the active execution environment: **BLOCKED BEFORE TRAINING**.
 
-Missing inputs include:
+The newly supplied `foreground_authenticity.pkl` is no longer a missing dependency for a seed-1337 resume path. However, the active `/mnt/data` workspace still does not expose the real-data tree and upstream proposal assets referenced by the bundled full-seed scripts, including paths equivalent to:
 
-- `/mnt/data/v516_data/real_debug_data/manifest.csv` and referenced raw Images/Labels;
-- `/mnt/data/v516_data/debug_pack/dataset/Images`;
-- `/mnt/data/v516_data/debug_pack/dataset/Labels`;
-- `/mnt/data/v517_work/full/v54_release_full/artifacts/models/geometry_xy.pt`;
-- `/mnt/data/v517_work/full/v54_release_full/artifacts/models/centerline_field_v52b.pt`;
-- `/mnt/data/v517_work/full/v54_release_full/artifacts/models/endpoint_ranker_v53.pkl`;
-- downstream `v517_banks.pkl`, `add_variants_partial.pkl`, `foreground_authenticity.pkl` for resume workflows.
+- `real_debug_data/manifest.csv` and referenced raw Images/Labels;
+- pretrain/debug `Images` and `Labels`;
+- `geometry_xy.pt`;
+- `centerline_field_v52b.pt`;
+- `endpoint_ranker_v53.pkl`.
 
-The supplied audit bundle explicitly reports that `v517_banks.pkl`, `add_variants_partial.pkl`, `foreground_authenticity.pkl` and the older width-suppression smoke script are not bundled.
+If these assets exist on the user's training machine but are simply not attached/mounted in this conversation runtime, this is an **environment-availability blocker**, not evidence that the project itself lacks them.
 
-The full-seed scripts therefore cannot produce a legitimate post-redesign F1/Dice/IoU result in the current execution environment.
+The full-seed scripts therefore cannot produce a legitimate post-redesign F1/Dice/IoU result inside the current execution environment yet.
 
-## 9. Interpretation
+## 10. Interpretation
 
-The redesign is **engineering-smoke qualified** for the tested components. No crash, NaN/Inf, output-shape, gradient or basic evidence-gate regression was detected in the executable smoke coverage.
+The redesign is **engineering-smoke qualified** for the tested components. No crash, NaN/Inf, output-shape, gradient or basic evidence-gate regression was detected in the executable smoke coverage. The supplied seed-1337 foreground-authenticity model is structurally compatible with the V5.18 feature contract and the redesigned suppression runtime.
 
-However, the project is **not scientifically smoke-qualified yet**. In particular, the following remain unmeasured after the suppression redesign:
+However, the project is **not scientifically smoke-qualified yet** in this runtime. In particular, the following remain unmeasured after the suppression redesign:
 
 - real-data 128 CRCV delta;
 - native 256 CRCV delta;
@@ -163,7 +190,7 @@ However, the project is **not scientifically smoke-qualified yet**. In particula
 
 Existing V5.18.1 result artifacts remain historical development evidence only and must not be reported as the performance of the redesigned suppression code.
 
-## 10. Required next input to unblock real smoke
+## 11. Required next execution step
 
 Before running the full real-data smoke, run:
 
