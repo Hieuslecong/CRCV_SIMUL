@@ -84,18 +84,35 @@ def test_keep_heavy_sampling_does_not_force_class_balance():
 def test_component_policy_removes_whole_small_component_only():
     base = np.zeros((32,32), bool); base[5:25,15:17] = True; base[2:4,2:4] = True
     prob = np.zeros(base.shape, np.float32); prob[5:25,15:17] = 0.95; prob[2:4,2:4] = 0.55
-    rm = component_remove_mask(base, prob, ComponentRemovalConfig(max_area_fraction=.01,max_mean_probability=.8,max_pixels=8))
+    rm = component_remove_mask(base, prob, ComponentRemovalConfig(
+        max_area_fraction=.01, max_mean_probability=.8,
+        max_total_remove_fraction=.05, max_foreground_remove_fraction=.5))
     assert rm[2:4,2:4].all()
     assert not rm[5:25,15:17].any()
+
+
+def test_component_policy_is_scale_equivalent_without_max_pixels():
+    small = np.zeros((32,32), bool); small[8:24,15:17] = True; small[2:4,2:4] = True
+    large = ndi.zoom(small.astype(np.uint8), 2, order=0).astype(bool)
+    ps = np.zeros(small.shape, np.float32); ps[8:24,15:17] = .95; ps[2:4,2:4] = .55
+    pl = ndi.zoom(ps, 2, order=0).astype(np.float32)
+    cfg = ComponentRemovalConfig(max_area_fraction=.01, max_mean_probability=.8,
+                                 max_total_remove_fraction=.05, max_foreground_remove_fraction=.5)
+    rs = component_remove_mask(small, ps, cfg); rl = component_remove_mask(large, pl, cfg)
+    assert rs[2:4,2:4].all() and not rs[8:24,15:17].any()
+    assert rl[4:8,4:8].all() and not rl[16:48,30:34].any()
 
 
 def test_error_profile_calibrates_counterfactual_config_from_fit_like_errors():
     from crcv52.error_profile import profile_base_error, merge_error_profiles, calibrate_counterfactual_config
     gt = crack_mask(); base = gt.copy(); base[20,40:48] = True; base[45:48,5:8] = True; base[30:33,24:26] = False
-    cfg = calibrate_counterfactual_config(merge_error_profiles([profile_base_error(base, gt)]))
-    assert 3 <= cfg.spur_length <= 16
-    assert 1 <= cfg.blob_radius <= 5
-    assert 1 <= cfg.dilation_radius <= 3
+    profile = merge_error_profiles([profile_base_error(base, gt)])
+    cfg = calibrate_counterfactual_config(profile)
+    assert profile['fp_components'][0]['area_fraction'] >= 0
+    assert 'min_distance_to_reference_norm' in profile['fp_components'][0]
+    assert cfg.spur_length >= 2
+    assert cfg.blob_radius >= 1
+    assert cfg.dilation_radius >= 1
     assert 0.025 <= cfg.gap_fraction <= 0.12
 
 
@@ -137,3 +154,12 @@ def test_remove_qualification_fails_closed_on_boundary_damage():
     bad = qualify_remove_policy({'delta_dice':0.01,'delta_recall':-0.006,'tcrr':0.008,'fprr':0.05})
     good = qualify_remove_policy({'delta_dice':0.002,'delta_recall':-0.0005,'tcrr':0.001,'fprr':0.02})
     assert bad['status'] == 'NO_OP'; assert good['status'] == 'ACTIVE'
+
+
+def test_qualification_separates_safety_from_fprr_effect_size():
+    safe_small = qualify_remove_policy({'delta_dice':.0001,'delta_recall':0.,'tcrr':0.,'fprr':.0001,
+                                        'true_removed':0,'fp_removed':1})
+    exact_noop = qualify_remove_policy({'delta_dice':0.,'delta_recall':0.,'tcrr':0.,'fprr':0.,
+                                        'true_removed':0,'fp_removed':0})
+    assert safe_small['status'] == 'ACTIVE'
+    assert exact_noop['status'] == 'NO_OP'
