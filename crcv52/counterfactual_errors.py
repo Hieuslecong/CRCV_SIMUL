@@ -34,17 +34,17 @@ def simulate_corruption(gt_mask, operator: str, seed: int = 1337,
                         config: CounterfactualConfig | None = None) -> tuple[np.ndarray, dict]:
     """Create a controlled corrupted Base-like mask from a clean crack mask.
 
-    IMPORTANT: additive operators thicken only the newly-created primitive.
-    They never dilate the complete ground-truth crack, which would incorrectly
-    label the true crack boundary as REMOVE supervision.
-
-    Parameters are intentionally explicit/auditable; production training should
-    later replace fixed smoke defaults with FIT-only empirical error profiles.
+    Additive operators thicken only the newly-created primitive. They never dilate
+    the complete GT crack, preventing false REMOVE labels on the true boundary.
+    Production training should calibrate the configuration from FIT-only Base-error
+    profiles rather than treating these dataclass defaults as scientific constants.
     """
     cfg = config or CounterfactualConfig()
     gt = np.asarray(gt_mask, dtype=bool)
     if gt.ndim != 2:
         raise ValueError("gt_mask must be 2-D")
+    if min(gt.shape) < 2:
+        raise ValueError("gt_mask is too small")
     rng = np.random.default_rng(seed)
     out = gt.copy()
     sk = skeletonize(gt)
@@ -82,7 +82,7 @@ def simulate_corruption(gt_mask, operator: str, seed: int = 1337,
         y0, x0 = int(ys[i]), int(xs[i])
         angle = float(rng.uniform(0, 2*np.pi))
         primitive = np.zeros_like(gt)
-        for k in range(1, cfg.spur_length + 1):
+        for k in range(1, max(1, int(cfg.spur_length)) + 1):
             y = int(round(y0 + k*np.sin(angle)))
             x = int(round(x0 + k*np.cos(angle)))
             if 0 <= y < gt.shape[0] and 0 <= x < gt.shape[1]:
@@ -91,24 +91,30 @@ def simulate_corruption(gt_mask, operator: str, seed: int = 1337,
         out = gt | primitive
         meta.update({"spur_length": int(cfg.spur_length), "spur_radius": int(cfg.spur_radius)})
     elif operator == "isolated_blob":
-        y = int(rng.integers(cfg.blob_radius, max(cfg.blob_radius+1, gt.shape[0]-cfg.blob_radius)))
-        x = int(rng.integers(cfg.blob_radius, max(cfg.blob_radius+1, gt.shape[1]-cfg.blob_radius)))
+        radius = max(1, int(cfg.blob_radius))
+        # Keep sampling valid even for very small unit/smoke-test masks.
+        ylo = min(radius, gt.shape[0]-1)
+        xlo = min(radius, gt.shape[1]-1)
+        yhi = max(ylo+1, gt.shape[0]-radius)
+        xhi = max(xlo+1, gt.shape[1]-radius)
+        y = int(rng.integers(ylo, yhi))
+        x = int(rng.integers(xlo, xhi))
         yy, xx = np.ogrid[:gt.shape[0], :gt.shape[1]]
-        primitive = ((yy-y)**2 + (xx-x)**2 <= cfg.blob_radius**2)
+        primitive = ((yy-y)**2 + (xx-x)**2 <= radius**2)
         out = gt | primitive
-        meta["blob_radius"] = int(cfg.blob_radius)
+        meta["blob_radius"] = radius
     elif operator == "false_bridge":
         labels, n = ndi.label(gt)
         if n < 2:
             return gt.copy(), {**meta, "status": "NO_OP_NEEDS_COMPONENTS"}
         centers = ndi.center_of_mass(gt, labels, range(1, n+1))
-        # Pick the nearest pair to avoid implausibly long global bridges.
         best = None
         for a in range(n):
             for b in range(a+1, n):
                 ya, xa = centers[a]; yb, xb = centers[b]
                 d2 = (ya-yb)**2 + (xa-xb)**2
-                if best is None or d2 < best[0]: best = (d2, a, b)
+                if best is None or d2 < best[0]:
+                    best = (d2, a, b)
         _, ia, ib = best
         (y0,x0),(y1,x1) = centers[ia], centers[ib]
         steps = max(abs(int(y1-y0)), abs(int(x1-x0)), 2)
