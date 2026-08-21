@@ -5,15 +5,23 @@ import numpy as np
 from scipy import ndimage as ndi
 from skimage.morphology import skeletonize
 
+from .region_supervision import KEEP, REMOVE, RemoveSupervisionConfig, build_remove_supervision, topology_hard_keep_mask
+
 
 @dataclass(frozen=True)
 class RemovalFeatureConfig:
-    blur_sigma: float = 1.0
+    # Legacy absolute override. None means use the scale-aware normalized sigma.
+    blur_sigma: float | None = None
+    blur_sigma_norm: float = 0.006
 
 
 def _norm(a: np.ndarray) -> np.ndarray:
     a = np.asarray(a, dtype=np.float32)
+    if a.size == 0:
+        return a.astype(np.float32)
     lo = float(np.quantile(a, 0.02)); hi = float(np.quantile(a, 0.98))
+    if not np.isfinite(lo) or not np.isfinite(hi) or hi <= lo + 1e-8:
+        return np.zeros_like(a, dtype=np.float32)
     return np.clip((a-lo)/(hi-lo+1e-6), 0, 1).astype(np.float32)
 
 
@@ -22,7 +30,7 @@ def _skeleton_context(base: np.ndarray):
     h, w = base.shape
     diag = max(float(np.hypot(h, w)), 1.0)
     if not sk.any():
-        far = np.full(base.shape, 1.0, np.float32)
+        far = np.ones(base.shape, np.float32)
         zeros = np.zeros(base.shape, np.float32)
         return sk, far, far, far, zeros, zeros
 
@@ -45,6 +53,7 @@ def _component_maps(base: np.ndarray):
     area_frac = np.zeros(base.shape, np.float32)
     sklen_frac = np.zeros(base.shape, np.float32)
     elongation = np.zeros(base.shape, np.float32)
+    bbox_diag_frac = np.zeros(base.shape, np.float32)
     h, w = base.shape
     diag = max(float(np.hypot(h, w)), 1.0)
     for lab in range(1, n+1):
@@ -54,6 +63,8 @@ def _component_maps(base: np.ndarray):
             continue
         area_frac[reg] = len(ys) / float(base.size)
         sklen_frac[reg] = float(skeletonize(reg).sum()) / diag
+        bh = int(ys.max()-ys.min()+1); bw = int(xs.max()-xs.min()+1)
+        bbox_diag_frac[reg] = float(np.hypot(bh, bw) / diag)
         if len(ys) >= 3:
             pts = np.stack([ys, xs], axis=1).astype(np.float32)
             cov = np.cov(pts, rowvar=False)
@@ -62,53 +73,58 @@ def _component_maps(base: np.ndarray):
         else:
             elong = 1.0
         elongation[reg] = min(elong, 20.0) / 20.0
-    return area_frac, sklen_frac, elongation
+    return area_frac, sklen_frac, elongation, bbox_diag_frac
 
 
 def build_removal_features(image, probability, base_mask,
                            config: RemovalFeatureConfig | None = None) -> tuple[np.ndarray, list[str]]:
-    """Build GT-free appearance + topology-aware features for KEEP/REMOVE.
-
-    GT is intentionally absent from this runtime feature API. Skeleton, width,
-    endpoint/junction and component descriptors are derived only from frozen Base.
-    Absolute x/y coordinates are deliberately excluded to reduce dataset-position bias.
-    """
+    """Build GT-free appearance + topology-aware features for KEEP/REMOVE."""
     cfg = config or RemovalFeatureConfig()
     image = np.asarray(image, dtype=np.float32)
     prob = np.asarray(probability, dtype=np.float32)
     base = np.asarray(base_mask, dtype=bool)
     if image.ndim != 3 or image.shape[:2] != base.shape or prob.shape != base.shape:
         raise ValueError("bad image/probability/base shapes")
+    if image.shape[2] < 1:
+        raise ValueError("image must have at least one channel")
+    if not np.isfinite(image).all() or not np.isfinite(prob).all():
+        raise ValueError("image/probability contains non-finite values")
+    h, w = base.shape
+    diag = max(float(np.hypot(h,w)), 1.0)
+    sigma = float(cfg.blur_sigma) if cfg.blur_sigma is not None else max(0.5, float(cfg.blur_sigma_norm) * diag)
+
     gray = image.mean(axis=2)
-    blur = ndi.gaussian_filter(gray, cfg.blur_sigma)
-    pblur = ndi.gaussian_filter(prob, cfg.blur_sigma)
+    blur = ndi.gaussian_filter(gray, sigma)
+    pblur = ndi.gaussian_filter(prob, sigma)
     gy, gx = np.gradient(gray)
     grad = np.sqrt(gx*gx + gy*gy)
     inside = ndi.distance_transform_edt(base).astype(np.float32)
-    h, w = base.shape
-    diag = max(float(np.hypot(h,w)), 1.0)
     _, dist_sk, dist_ep, dist_jn, radial_ratio, nearest_degree = _skeleton_context(base)
-    comp_area, comp_sklen, comp_elong = _component_maps(base)
+    comp_area, comp_sklen, comp_elong, comp_bbox_diag = _component_maps(base)
     local_radius = np.clip(inside/diag, 0, 1)
 
     X = np.stack([
         prob, pblur, gray, gray-blur, _norm(grad),
         dist_sk, local_radius, radial_ratio, dist_ep, dist_jn, nearest_degree,
-        comp_area, comp_sklen, comp_elong,
+        comp_area, comp_sklen, comp_elong, comp_bbox_diag,
     ], axis=-1).astype(np.float32)
     names = [
         "prob", "blur_prob", "gray", "gray_minus_blur", "gray_gradient",
         "distance_to_base_skeleton_norm", "inside_radius_norm", "radial_position_ratio",
         "distance_to_endpoint_norm", "distance_to_junction_norm", "nearest_skeleton_degree",
         "component_area_fraction", "component_skeleton_length_norm", "component_elongation",
+        "component_bbox_diagonal_norm",
     ]
     return X, names
 
 
 def _sample_indices(idx: np.ndarray, n: int, rng) -> np.ndarray:
+    idx = np.asarray(idx, dtype=np.int64)
+    if n <= 0 or len(idx) == 0:
+        return np.empty(0, np.int64)
     if len(idx) <= n:
         return idx
-    return rng.choice(idx, n, replace=False)
+    return np.asarray(rng.choice(idx, n, replace=False), dtype=np.int64)
 
 
 def sample_keep_remove_training(image, probability, base_mask, gt_mask,
@@ -116,72 +132,64 @@ def sample_keep_remove_training(image, probability, base_mask, gt_mask,
                                 max_remove: int = 450,
                                 max_per_class: int | None = None,
                                 boundary_keep_fraction: float = 0.55,
-                                hard_keep_radius: int = 2,
-                                remove_exclusion_radius: int = 1,
+                                hard_keep_radius_scale: float = 1.0,
+                                remove_min_distance_ratio: float = 1.25,
+                                supervision_mode: str = "detached_component",
                                 hard_keep_repeat: int = 3,
-                                require_detached_remove: bool = True,
                                 seed: int = 1337) -> tuple[np.ndarray, np.ndarray, list[str]]:
-    """Sample KEEP/REMOVE with explicit boundary/topology KEEP emphasis.
+    """Scale-aware KEEP-heavy sampling with explicit IGNORE supervision.
 
-    REMOVE is deliberately not class-balanced. KEEP dominates. Hard KEEP examples
-    come from true crack boundary and endpoint/junction neighborhoods. Pixels in a
-    small GT tolerance band are excluded from REMOVE supervision so annotation-edge
-    uncertainty is not taught as a deletion target.
+    Stable V5.20.3 defaults keep attached FP components as IGNORE and learn REMOVE
+    from scale-normalized detached components. Distal-pixel attached supervision is
+    available only as an explicit ablation because real-data review found it too
+    aggressive for the canonical safety path.
     """
-    from .action_targets import build_action_targets
     if max_per_class is not None:
         max_keep = int(max_per_class)
         max_remove = int(max_per_class)
+    if max_keep < 0 or max_remove < 0:
+        raise ValueError("sample limits must be non-negative")
+    if not 0.0 <= float(boundary_keep_fraction) <= 1.0:
+        raise ValueError("boundary_keep_fraction must be in [0,1]")
+
     Xmap, names = build_removal_features(image, probability, base_mask)
-    t = build_action_targets(base_mask, gt_mask)
     base = np.asarray(base_mask, bool); gt = np.asarray(gt_mask, bool)
-    keep = t["keep"]
+    supervision = build_remove_supervision(
+        base, gt, RemoveSupervisionConfig(
+            mode=supervision_mode,
+            remove_min_distance_ratio=float(remove_min_distance_ratio),
+        )
+    )
+    keep = supervision == KEEP
+    remove = supervision == REMOVE
     rng = np.random.default_rng(seed)
 
-    eroded = ndi.binary_erosion(gt, structure=np.ones((3,3), bool), border_value=0)
-    boundary = gt & ~eroded
-    sk = skeletonize(gt)
-    neigh = ndi.convolve(sk.astype(np.uint8), np.ones((3,3), np.uint8), mode="constant") if sk.any() else np.zeros_like(gt, np.uint8)
-    topo = sk & ((neigh <= 2) | (neigh >= 4))
-    if hard_keep_radius > 0 and topo.any():
-        topo = ndi.binary_dilation(topo, iterations=hard_keep_radius)
-    hard_keep = keep & (boundary | topo)
+    hard_keep = topology_hard_keep_mask(base, gt, radius_scale=float(hard_keep_radius_scale))
+    hard_keep &= keep
     easy_keep = keep & ~hard_keep
 
-    n_hard = int(round(max_keep * boundary_keep_fraction))
+    n_hard = int(round(max_keep * float(boundary_keep_fraction)))
     hard_idx = _sample_indices(np.flatnonzero(hard_keep.ravel()), n_hard, rng)
     remaining = max_keep - len(hard_idx)
     easy_idx = _sample_indices(np.flatnonzero(easy_keep.ravel()), remaining, rng)
-    if len(hard_idx) + len(easy_idx) < max_keep:
+    chosen = np.concatenate([hard_idx, easy_idx])
+    if len(chosen) < max_keep:
         all_keep = np.flatnonzero(keep.ravel())
-        chosen = set(np.concatenate([hard_idx,easy_idx]).tolist())
-        rest = np.array([i for i in all_keep if i not in chosen], dtype=np.int64)
+        used = set(chosen.tolist())
+        rest = np.asarray([i for i in all_keep if i not in used], dtype=np.int64)
         fill = _sample_indices(rest, max_keep-len(chosen), rng)
-        keep_idx = np.concatenate([hard_idx,easy_idx,fill])
+        keep_idx = np.concatenate([chosen, fill])
     else:
-        keep_idx = np.concatenate([hard_idx,easy_idx])
+        keep_idx = chosen
 
-    if remove_exclusion_radius > 0:
-        tol_gt = ndi.binary_dilation(gt, iterations=remove_exclusion_radius)
-    else:
-        tol_gt = gt
-    fp = base & ~gt
-    if require_detached_remove:
-        flab, fn = ndi.label(fp)
-        safe_remove = np.zeros_like(base)
-        for lab in range(1, fn + 1):
-            reg = flab == lab
-            if not np.any(ndi.binary_dilation(reg, iterations=1) & tol_gt):
-                safe_remove |= reg
-    else:
-        safe_remove = fp & ~tol_gt
-    rem_idx = _sample_indices(np.flatnonzero(safe_remove.ravel()), max_remove, rng)
-
+    rem_idx = _sample_indices(np.flatnonzero(remove.ravel()), max_remove, rng)
     repeat = max(1, int(hard_keep_repeat))
     hard_weighted = np.tile(hard_idx, repeat) if len(hard_idx) else hard_idx
-    idx = np.concatenate([hard_weighted, easy_idx, rem_idx])
+    hard_set = set(hard_idx.tolist())
+    keep_nonhard = np.asarray([i for i in keep_idx if i not in hard_set], dtype=np.int64)
+    idx = np.concatenate([hard_weighted, keep_nonhard, rem_idx])
     y = np.concatenate([
-        np.zeros(len(hard_weighted) + len(easy_idx), np.int8),
+        np.zeros(len(hard_weighted) + len(keep_nonhard), np.int8),
         np.ones(len(rem_idx), np.int8),
     ])
     if len(idx) == 0:
