@@ -8,7 +8,11 @@ from skimage.morphology import skeletonize
 
 @dataclass(frozen=True)
 class ComponentRemovalConfig:
-    """Scale-free conservative whole-component REMOVE fallback."""
+    """Scale-free conservative whole-component REMOVE fallback.
+
+    `max_pixels` is a deprecated compatibility override. Canonical V5.20.3 leaves
+    it as None and uses normalized shape/area constraints only.
+    """
     max_area_fraction: float = 0.001
     max_mean_probability: float = 0.85
     max_skeleton_length_fraction: float = 0.025
@@ -16,6 +20,7 @@ class ComponentRemovalConfig:
     max_elongation: float = 4.0
     max_total_remove_fraction: float = 0.03
     max_foreground_remove_fraction: float = 0.10
+    max_pixels: int | None = None
 
 
 def _elongation(ys: np.ndarray, xs: np.ndarray) -> float:
@@ -31,8 +36,8 @@ def component_remove_mask(base_mask, probability,
     """Return a GT-free, shape-aware whole-component REMOVE mask.
 
     Long/elongated crack-like components are protected even when small in area.
-    All size thresholds are normalized by image dimensions; no absolute max-pixel
-    rule is used, so semantics remain comparable across resolutions.
+    Canonical size thresholds are normalized by image dimensions. The deprecated
+    `max_pixels` override is honored only when an old caller explicitly sets it.
     """
     cfg = config or ComponentRemovalConfig()
     base = np.asarray(base_mask, bool)
@@ -47,6 +52,8 @@ def component_remove_mask(base_mask, probability,
             0 <= cfg.max_total_remove_fraction <= 1 and
             0 <= cfg.max_foreground_remove_fraction <= 1):
         raise ValueError("fraction limits must be in [0,1]")
+    if cfg.max_pixels is not None and int(cfg.max_pixels) < 0:
+        raise ValueError("max_pixels must be non-negative or None")
 
     h, w = base.shape
     diag = max(float(np.hypot(h, w)), 1.0)
@@ -64,6 +71,8 @@ def component_remove_mask(base_mask, probability,
         bbox_diag_fraction = float(np.hypot(ys.max()-ys.min()+1,
                                             xs.max()-xs.min()+1)) / diag
         elong = _elongation(ys, xs)
+        if cfg.max_pixels is not None and size > int(cfg.max_pixels):
+            continue
         if area_fraction > cfg.max_area_fraction:
             continue
         if mean_probability > cfg.max_mean_probability:
