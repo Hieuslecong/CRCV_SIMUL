@@ -1,6 +1,6 @@
-# CRCV V5.21-dev1 — Compact Dual-Action Candidate
+# CRCV V5.21-dev2 — Real-Training-Ready Compact Dual-Action Candidate
 
-> **Branch status:** the canonical scientific development path on `feature/crcv-v5-21-compact-aac-q1` is the five-module natural-error `crcv_core` ADD/REMOVE + AAC implementation. See `README_V521.md`. The V5.20.3 material below is retained as historical/development evidence and an explicit counterfactual REMOVE ablation; it is not deleted or relabeled.
+> **Current branch:** `feature/crcv-v5-21-dev2-real-training-ready-q1`. The canonical scientific path is `crcv_core` **1.1.1** (natural frozen-Base ADD/REMOVE + AAC) with `scripts/train_v521_real.py` as the FIT→CAL→VAL real-data entry point and Q1 evidence protocol `5.21-q1-v1`. GitHub is storage only after ChatGPT-side smoke/review. The V5.20.3 material below is retained unchanged as historical/development evidence and a counterfactual REMOVE ablation.
 
 # CRCV V5.20.3 — Counterfactual Corrective Refinement Engineering RC
 

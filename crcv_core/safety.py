@@ -17,7 +17,7 @@ class SafetyConfig:
 def _check(c):
     for n in ("core_radius_fraction","min_radius_norm","max_total_remove_fraction","max_foreground_remove_fraction","max_region_fraction","max_add_foreground_fraction"):
         x=float(getattr(c,n))
-        if not np.isfinite(x) or x<0:raise ValueError(f"bad {n}")
+        if not np.isfinite(x) or x<0 or (n!="core_radius_fraction" and x>1):raise ValueError(f"bad {n}")
 
 def project_remove(base_mask,score,threshold,config:SafetyConfig|None=None):
     c=config or SafetyConfig(); _check(c); b=np.asarray(base_mask,bool); s=np.asarray(score,np.float32)
@@ -49,7 +49,8 @@ def project_add(base_mask,candidate,score,threshold,config:SafetyConfig|None=Non
     if not 0<=float(threshold)<=1:raise ValueError("threshold must be in [0,1]")
     conn=np.ones((3,3),bool); raw=cand&(s>=float(threshold))
     if not raw.any() or not b.any():return np.zeros_like(b),{"added_pixels":0,"status":"NO_OP"}
-    lab,_=ndi.label(b|raw,structure=conn); good=np.unique(lab[b]); add=raw&np.isin(lab,good); budget=max(1,int(c.max_add_foreground_fraction*max(int(b.sum()),1)))
+    lab,_=ndi.label(b|raw,structure=conn); good=np.unique(lab[b]); add=raw&np.isin(lab,good); budget=max(0,int(c.max_add_foreground_fraction*int(b.sum())))
+    if budget==0:return np.zeros_like(b),{"added_pixels":0,"budget":0,"status":"NO_OP_BUDGET"}
     if int(add.sum())>budget:
         idx=np.flatnonzero(add.ravel()); vals=s.ravel()[idx]; keep=idx[np.argpartition(vals,-budget)[-budget:]]; q=np.zeros_like(add); q.ravel()[keep]=True
         lab,_=ndi.label(b|q,structure=conn); good=np.unique(lab[b]); add=q&np.isin(lab,good)

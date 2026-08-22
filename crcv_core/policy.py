@@ -57,9 +57,11 @@ def _hard_keep(gt,keep):
     diag=max(float(np.hypot(*gt.shape)),1.); r=max(1,int(round(.006*diag))); er=ndi.binary_erosion(gt,iterations=r,border_value=0); return keep&(gt&~er)
 
 def _validate(records,probabilities,base_threshold,c):
-    if not 0<=float(base_threshold)<=1 or not np.isfinite(base_threshold):raise ValueError("bad base threshold")
+    if not np.isfinite(base_threshold) or not 0<=float(base_threshold)<=1:raise ValueError("bad base threshold")
     if c.add_margin<0 or c.add_radial_max<=0 or c.remove_min_distance_ratio<0 or not 0<=c.hard_keep_fraction<=1:raise ValueError("bad training config")
-    recs=sorted(list(records),key=lambda r:str(r.get("name",""))); names=[str(r.get("name","")).strip() for r in recs]
+    if min(c.add_max_positive,c.add_max_negative,c.remove_max_keep,c.remove_max_positive)<1:raise ValueError("sample limits must be positive")
+    if c.n_estimators<1 or c.learning_rate<=0 or c.num_leaves<2 or c.max_depth<1 or c.min_child_samples<1 or c.reg_lambda<0:raise ValueError("bad learner config")
+    recs=sorted(list(records),key=lambda r:str(r.get("name","")).strip()); names=[str(r.get("name","")).strip() for r in recs]
     if not names or any(not x for x in names):raise ValueError("stable record names required")
     if len(set(names))!=len(names):raise ValueError("duplicate record names")
     if any(n not in probabilities for n in names):raise KeyError("missing probabilities")
@@ -74,7 +76,7 @@ def build_training_matrices(records,probabilities,base_threshold,seed=1337,confi
     """
     c=config or TrainingConfig(); recs=_validate(records,probabilities,base_threshold,c); AX=[];Ay=[];RX=[];Ry=[];schema=None; source_counts={}
     for r in recs:
-        n=str(r["name"]); im=np.asarray(r["image"],np.float32); gt=np.asarray(r["gt"],bool); p=np.asarray(probabilities[n],np.float32)
+        n=str(r["name"]).strip(); im=np.asarray(r["image"],np.float32); gt=np.asarray(r["gt"],bool); p=np.asarray(probabilities[n],np.float32)
         if im.ndim!=3 or gt.ndim!=2 or im.shape[:2]!=gt.shape or p.shape!=gt.shape or not np.isfinite(im).all() or not np.isfinite(p).all():raise ValueError(f"bad record {n}")
         src=str(r.get("source","unspecified")); source_counts[src]=source_counts.get(src,0)+1; b=p>=float(base_threshold); X,names=build_features(im,p,b); schema=schema or names
         if schema!=names:raise AssertionError("feature schema drift")
@@ -86,7 +88,7 @@ def build_training_matrices(records,probabilities,base_threshold,seed=1337,confi
     ax=np.concatenate(AX).astype(np.float32); ay=np.concatenate(Ay).astype(np.int8); rx=np.concatenate(RX).astype(np.float32); ry=np.concatenate(Ry).astype(np.int8)
     if len(np.unique(ay))<2 or len(np.unique(ry))<2:raise ValueError("both action heads require two classes")
     schema_sha=hashlib.sha256(json.dumps(schema,separators=(",",":")).encode()).hexdigest(); matrix_sha=hashlib.sha256(ax.tobytes()+ay.tobytes()+rx.tobytes()+ry.tobytes()).hexdigest()
-    meta={"feature_names":schema,"feature_schema_sha256":schema_sha,"training_matrix_sha256":matrix_sha,"sources":source_counts,"add_rows":int(len(ay)),"add_positive":int(ay.sum()),"remove_rows":int(len(ry)),"remove_positive":int(ry.sum())}
+    meta={"method":"CRCV-V5.21","core_version":"1.1.1","feature_names":schema,"feature_schema_sha256":schema_sha,"training_matrix_sha256":matrix_sha,"sources":source_counts,"add_rows":int(len(ay)),"add_positive":int(ay.sum()),"remove_rows":int(len(ry)),"remove_positive":int(ry.sum())}
     return (ax,ay),(rx,ry),meta
 
 

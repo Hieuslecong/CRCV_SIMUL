@@ -1,5 +1,5 @@
 {
-  "version": "5.19-q1-v2",
+  "version": "5.21-q1-v1",
   "status_name": "EVIDENCE_COMPLETE",
   "resolutions": [128, 256],
   "full_training_seeds": [1337, 2027, 31415],
@@ -11,7 +11,7 @@
   "comparators_required": ["base", "morphology", "stripcuts_or_equivalent_published_refiner", "crcv_v5181"],
   "primary_metrics": ["dice", "crack_iou"],
   "statistics": ["paired cluster bootstrap 95% CI", "paired cluster sign permutation", "Holm correction"],
-  "data_integrity": ["lineage-disjoint", "historical-exposure guard", "fresh external final holdout"],
+  "data_integrity": ["lineage-disjoint", "exact-image SHA256 disjoint", "historical-exposure guard", "fresh external final holdout"],
   "provenance": ["git commit", "dataset manifest SHA256", "split manifest SHA256", "config SHA256", "artifact SHA256"],
   "runtime_gt": false,
   "runtime_gt_mutation_test": "required",

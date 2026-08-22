@@ -19,8 +19,10 @@ def _robust01(a):
 def build_features(image,probability,base_mask,config:FeatureConfig|None=None):
     """Nine compact GT-free features shared by ADD and REMOVE heads."""
     c=config or FeatureConfig(); im=np.asarray(image,np.float32); p=np.asarray(probability,np.float32); b=np.asarray(base_mask,bool)
-    if b.ndim!=2 or p.shape!=b.shape or im.ndim!=3 or im.shape[:2]!=b.shape or im.shape[2]<1:raise ValueError("bad image/probability/base shapes")
+    if b.ndim!=2 or p.shape!=b.shape or im.ndim!=3 or im.shape[:2]!=b.shape or im.shape[2]<1 or min(b.shape)<2:raise ValueError("bad image/probability/base shapes")
     if not np.isfinite(im).all() or not np.isfinite(p).all():raise ValueError("non-finite inputs")
+    if im.size and (float(im.min())<0 or float(im.max())>1):raise ValueError("image must be normalized to [0,1]")
+    if p.size and (float(p.min())<0 or float(p.max())>1):raise ValueError("probability must be in [0,1]")
     if c.blur_sigma_norm<0 or c.blackhat_size_norm<0 or not np.isfinite(c.blur_sigma_norm+c.blackhat_size_norm):raise ValueError("bad feature config")
     h,w=b.shape; diag=max(float(np.hypot(h,w)),1.); sigma=max(.5,float(c.blur_sigma_norm)*diag)
     gray=im.mean(2); blur=ndi.gaussian_filter(gray,sigma); pblur=ndi.gaussian_filter(p,sigma); gy,gx=np.gradient(gray); grad=np.sqrt(gx*gx+gy*gy)
