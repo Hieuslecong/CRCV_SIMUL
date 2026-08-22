@@ -1,5 +1,6 @@
 {
-  "version": "5.21-q1-v1",
+  "version": "5.21-q1-v2",
+  "proposed_method": "crcv_v521",
   "status_name": "EVIDENCE_COMPLETE",
   "resolutions": [128, 256],
   "full_training_seeds": [1337, 2027, 31415],

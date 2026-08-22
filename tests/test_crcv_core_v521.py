@@ -19,12 +19,11 @@ def crack(s=64):
 
 def rec(name='a',s=64,source='real'):
     g=crack(s); im=np.repeat((~g)[...,None],3,axis=2).astype(np.float32); p=g.astype(np.float32)*.82+.08
-    # detached REMOVE example plus ADD-positive/negative near the Base support
     p[2:5,2:5]=.75
     yy=s//2; xx=s//3+yy//8
-    p[yy:yy+3,max(0,xx-1):min(s,xx+2)]=.35  # true crack below Base threshold, inside ADD margin
+    p[yy:yy+3,max(0,xx-1):min(s,xx+2)]=.35
     y2=s//3; x2=s//3+y2//8
-    p[y2:y2+2,min(s-1,x2+3):min(s,x2+4)]=.35  # nearby non-crack ADD negatives
+    p[y2:y2+2,min(s-1,x2+3):min(s,x2+4)]=.35
     return {'name':name,'source':source,'image':im,'gt':g},p
 
 # REVIEW 1 — contracts and leakage
@@ -178,7 +177,6 @@ def test_add_budget_trim_preserves_connectivity_to_base():
 def test_remove_uses_eight_connectivity_for_diagonal_crack():
     b=np.zeros((24,24),bool)
     for i in range(5,19): b[i,i]=True
-    # With 8-connectivity the diagonal foreground is one component.
     assert ndi.label(b,structure=np.ones((3,3),bool))[1]==1
     score=np.zeros(b.shape,np.float32); score[b]=1.0
     rm,_=project_remove(b,score,.5,SafetyConfig(core_radius_fraction=0,min_radius_norm=0,preserve_component_count=True,max_total_remove_fraction=.5,max_foreground_remove_fraction=.5))
@@ -188,7 +186,7 @@ def test_remove_uses_eight_connectivity_for_diagonal_crack():
 
 def test_embedded_core_version_is_frozen():
     import crcv_core
-    assert crcv_core.__version__=='1.1.1'
+    assert crcv_core.__version__=='1.1.2'
 
 
 # REVIEW 6 — action-asymmetric calibration

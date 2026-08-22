@@ -36,11 +36,13 @@ def _run(tmp_path: Path, dataset: str, backbone: str, seed: int, resolution: int
         "dataset_manifest_sha256": digest,
         "split_manifest_sha256": digest,
         "config_sha256": digest,
+        "base_artifact_sha256": digest,
+        "probability_provenance_bound": True,
         "seed": seed,
         "backbone": backbone,
         "dataset": dataset,
         "resolution": resolution,
-        "method": "crcv_v5181",
+        "method": "crcv_v521",
         "artifacts": [artifact],
     }
 
@@ -49,17 +51,15 @@ def good_payload(tmp_path: Path) -> dict:
     backbones = ["unet", "deeplabv3p", "fastscnn", "bisenet", "dsunet"]
     datasets = ["a", "b", "c"]
     runs = []
-    # Minimal coverage records: every dataset/backbone/seed/resolution appears at least once.
     for i, backbone in enumerate(backbones):
         runs.append(_run(tmp_path, datasets[i % 3], backbone, [1337, 2027, 31415][i % 3], 128 if i % 2 == 0 else 256))
-    runs.extend(
-        [
-            _run(tmp_path, "b", "unet", 2027, 256),
-            _run(tmp_path, "c", "deeplabv3p", 31415, 128),
-        ]
-    )
+    runs.extend([
+        _run(tmp_path, "b", "unet", 2027, 256),
+        _run(tmp_path, "c", "deeplabv3p", 31415, 128),
+    ])
     shared = _artifact(tmp_path, "evidence/audit.json")
     return {
+        "proposed_method": "crcv_v521",
         "datasets": datasets,
         "backbones": backbones,
         "reference_backbones": ["unet", "deeplabv3p"],
@@ -143,3 +143,17 @@ def test_historical_exposure_guard_rejects_final_sample():
     result = audit_rows(rows)
     assert result["status"] == "FAIL"
     assert any("historically exposed" in x for x in result["failures"])
+
+
+def test_legacy_only_run_records_cannot_satisfy_v521_gate(tmp_path):
+    payload=good_payload(tmp_path)
+    for run in payload["run_records"]: run["method"]="crcv_v5181"
+    result=assess(payload,root=tmp_path)
+    assert result["status"]=="BLOCKED"
+    assert any("proposed method" in x or "proposed-method" in x for x in result["failures"])
+
+
+def test_declared_proposed_method_is_frozen(tmp_path):
+    payload=good_payload(tmp_path); payload["proposed_method"]="crcv_v5181"
+    result=assess(payload,root=tmp_path)
+    assert result["status"]=="BLOCKED" and any("proposed_method" in x for x in result["failures"])

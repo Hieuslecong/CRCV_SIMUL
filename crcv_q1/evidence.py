@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from pathlib import Path
 import hashlib
 import json
+import re
 from typing import Iterable
 
 
@@ -33,7 +34,7 @@ def validate_artifact_ref(ref: dict, root: str | Path = ".") -> list[str]:
     kind = ref.get("kind")
     if not isinstance(path, str) or not path:
         return ["artifact.path missing"]
-    if not isinstance(expected, str) or len(expected) != 64:
+    if not isinstance(expected, str) or not re.fullmatch(r"[0-9a-fA-F]{64}", expected):
         failures.append(f"artifact {path}: invalid sha256")
     if not isinstance(kind, str) or not kind:
         failures.append(f"artifact {path}: kind missing")
@@ -42,7 +43,7 @@ def validate_artifact_ref(ref: dict, root: str | Path = ".") -> list[str]:
     if not p.is_file():
         failures.append(f"artifact {path}: file missing")
         return failures
-    if isinstance(expected, str) and len(expected) == 64:
+    if isinstance(expected, str) and re.fullmatch(r"[0-9a-fA-F]{64}", expected):
         actual = sha256_file(p)
         if actual.lower() != expected.lower():
             failures.append(f"artifact {path}: sha256 mismatch")
@@ -88,6 +89,8 @@ def validate_run_record(record: dict, root: str | Path = ".") -> list[str]:
             "dataset_manifest_sha256",
             "split_manifest_sha256",
             "config_sha256",
+            "base_artifact_sha256",
+            "probability_provenance_bound",
             "seed",
             "backbone",
             "dataset",
@@ -98,12 +101,14 @@ def validate_run_record(record: dict, root: str | Path = ".") -> list[str]:
         prefix="run.",
     )
     commit = record.get("git_commit")
-    if isinstance(commit, str) and len(commit) < 7:
-        failures.append("run.git_commit is not a valid commit identifier")
-    for key in ("dataset_manifest_sha256", "split_manifest_sha256", "config_sha256"):
+    if not isinstance(commit, str) or not re.fullmatch(r"[0-9a-fA-F]{7,40}", commit):
+        failures.append("run.git_commit is not a valid hexadecimal commit identifier")
+    for key in ("dataset_manifest_sha256", "split_manifest_sha256", "config_sha256", "base_artifact_sha256"):
         value = record.get(key)
-        if isinstance(value, str) and len(value) != 64:
+        if not isinstance(value, str) or not re.fullmatch(r"[0-9a-fA-F]{64}", value):
             failures.append(f"run.{key} must be a SHA256 digest")
+    if record.get("probability_provenance_bound") is not True:
+        failures.append("run.probability_provenance_bound must be true")
     resolution = record.get("resolution")
     if not isinstance(resolution, int) or resolution <= 0:
         failures.append("run.resolution must be a positive integer")

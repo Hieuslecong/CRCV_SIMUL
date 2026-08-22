@@ -1,6 +1,6 @@
-# CRCV V5.21-dev2 — Real-Training-Ready Compact Dual-Action Candidate
+# CRCV V5.21-dev3 — Provenance-Safe Real-Training Candidate
 
-> **Current branch:** `feature/crcv-v5-21-dev2-real-training-ready-q1`. The canonical scientific path is `crcv_core` **1.1.1** (natural frozen-Base ADD/REMOVE + AAC) with `scripts/train_v521_real.py` as the FIT→CAL→VAL real-data entry point and Q1 evidence protocol `5.21-q1-v1`. GitHub is storage only after ChatGPT-side smoke/review. The V5.20.3 material below is retained unchanged as historical/development evidence and a counterfactual REMOVE ablation.
+> **Current branch:** `feature/crcv-v5-21-dev3-provenance-safe-q1`. The canonical scientific path is `crcv_core` **1.1.2** (natural frozen-Base ADD/REMOVE + AAC) with `scripts/train_v521_real.py` as the FIT→CAL→VAL real-data entry point and Q1 evidence protocol `5.21-q1-v2`. Dev3 hardens literal-boolean fail-closed deployment, Base↔probability provenance, duplicate-image guards, and proposed-method evidence coverage without changing the five-module scientific core. GitHub is storage only after ChatGPT-side smoke/review. The V5.20.3 material below remains historical/development evidence and a counterfactual REMOVE ablation.
 
 # CRCV V5.20.3 — Counterfactual Corrective Refinement Engineering RC
 

@@ -113,6 +113,9 @@ def assess(payload: dict, protocol: Q1Protocol | None = None, root: str | Path =
 
     # Every run record must bind code/data/config/results by immutable hashes.
     run_records = payload.get("run_records", [])
+    declared_method = str(payload.get("proposed_method", "")).strip().lower()
+    if declared_method != p.proposed_method:
+        failures.append(f"proposed_method must equal {p.proposed_method}")
     if p.require_artifact_provenance:
         if not run_records:
             failures.append("run provenance records missing")
@@ -121,20 +124,26 @@ def assess(payload: dict, protocol: Q1Protocol | None = None, root: str | Path =
                 f"run[{i}]: {msg}" for msg in validate_run_record(record, root=root)
             )
 
-        observed_datasets = _norm_set(r.get("dataset") for r in run_records)
-        observed_backbones = _norm_set(r.get("backbone") for r in run_records)
-        observed_resolutions = {r.get("resolution") for r in run_records}
-        observed_seeds = {r.get("seed") for r in run_records}
+        proposed_runs = [
+            r for r in run_records
+            if str(r.get("method", "")).strip().lower() == p.proposed_method
+        ]
+        if not proposed_runs:
+            failures.append(f"no provenance runs for proposed method {p.proposed_method}")
+        observed_datasets = _norm_set(r.get("dataset") for r in proposed_runs)
+        observed_backbones = _norm_set(r.get("backbone") for r in proposed_runs)
+        observed_resolutions = {r.get("resolution") for r in proposed_runs}
+        observed_seeds = {r.get("seed") for r in proposed_runs}
         if datasets - observed_datasets:
-            failures.append(f"provenance missing datasets {sorted(datasets - observed_datasets)}")
+            failures.append(f"proposed-method provenance missing datasets {sorted(datasets - observed_datasets)}")
         if backbones - observed_backbones:
-            failures.append(f"provenance missing backbones {sorted(backbones - observed_backbones)}")
+            failures.append(f"proposed-method provenance missing backbones {sorted(backbones - observed_backbones)}")
         if set(p.resolutions) - observed_resolutions:
             failures.append(
-                f"provenance missing resolutions {sorted(set(p.resolutions) - observed_resolutions)}"
+                f"proposed-method provenance missing resolutions {sorted(set(p.resolutions) - observed_resolutions)}"
             )
         if set(p.full_seeds) - observed_seeds:
-            failures.append(f"provenance missing full seeds {sorted(set(p.full_seeds) - observed_seeds)}")
+            failures.append(f"proposed-method provenance missing full seeds {sorted(set(p.full_seeds) - observed_seeds)}")
 
     aggregate = payload.get("aggregate", {})
     for key, floor, label in (

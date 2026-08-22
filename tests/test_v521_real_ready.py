@@ -1,5 +1,6 @@
 from pathlib import Path
 import csv
+import hashlib
 import cv2
 import lightgbm
 import numpy as np
@@ -47,11 +48,11 @@ def test_zero_add_budget_is_exact_noop():
     assert not add.any() and info["budget"]==0 and info["status"]=="NO_OP_BUDGET"
 
 
-
 def test_runtime_is_fail_closed_until_val_qualification():
     r,p=sample(); b=p>=.5
     out,info=refine(r["image"],p,.5,None,.1,.1)
     assert np.array_equal(out,b) and info["status"]=="NO_OP_UNQUALIFIED" and not info["add"].any() and not info["remove"].any()
+
 
 def test_booster_reload_is_runtime_compatible(tmp_path):
     r,p=sample(); heads,_=train([r],{"a":p},.5,11)
@@ -63,19 +64,18 @@ def test_booster_reload_is_runtime_compatible(tmp_path):
     assert np.allclose(a1,a2) and np.allclose(rm1,rm2)
 
 
-def _write_manifest(root: Path, include_bad_split=False, leak=False):
+def _write_manifest(root: Path, include_bad_split=False, leak=False, base_sha="a"*64):
     root.mkdir(parents=True,exist_ok=True)
     rows=[]
     for split_i,split in enumerate(("fit","cal","val")):
         for j in range(2):
             name=f"{split}_{j}"; r,p=sample(name,40)
-            # vary content so exact-image hash is split-disjoint
             r["image"][0,split_i*3+j,0]=.2+.1*j
             ip=root/f"{name}.png"; mp=root/f"{name}_mask.png"; pp=root/f"{name}.npy"
             cv2.imwrite(str(ip),cv2.cvtColor((r["image"]*255).astype(np.uint8),cv2.COLOR_RGB2BGR))
             cv2.imwrite(str(mp),r["gt"].astype(np.uint8)*255); np.save(pp,p)
             lineage="shared" if leak and j==0 else f"{split}_{j}"
-            rows.append({"name":name,"split":split,"source":"real","lineage":lineage,"image":ip.name,"mask":mp.name,"probability":pp.name})
+            rows.append({"name":name,"split":split,"source":"real","lineage":lineage,"image":ip.name,"mask":mp.name,"probability":pp.name,"base_artifact_sha256":base_sha})
     if include_bad_split:
         rows[-1]["split"]="test"
     path=root/"manifest.csv"
@@ -84,11 +84,11 @@ def _write_manifest(root: Path, include_bad_split=False, leak=False):
     return path
 
 
-
 def test_val_topology_regression_fails_closed():
     m={"delta_precision":.01,"delta_recall":.01,"delta_dice":.01,"delta_cldice":-.0001,"tcrr":0.,"max_image_tcrr":0.}
     ok,fail=qualify_val(m)
     assert not ok and "delta_cldice < 0" in fail
+
 
 def test_manifest_rejects_test_or_lineage_leakage(tmp_path):
     with pytest.raises(ValueError): read_manifest(_write_manifest(tmp_path/"a",include_bad_split=True))
@@ -99,7 +99,6 @@ def test_manifest_rejects_cross_split_lineage(tmp_path):
     with pytest.raises(ValueError): read_manifest(_write_manifest(root,leak=True))
 
 
-
 def test_manifest_rejects_exact_duplicate_image_even_with_new_name(tmp_path):
     root=tmp_path/"dup"; manifest=_write_manifest(root)
     rows=list(csv.DictReader(manifest.open()))
@@ -108,10 +107,11 @@ def test_manifest_rejects_exact_duplicate_image_even_with_new_name(tmp_path):
         w=csv.DictWriter(f,fieldnames=list(rows[0])); w.writeheader(); w.writerows(rows)
     with pytest.raises(ValueError): read_manifest(manifest)
 
+
 def test_real_runner_fit_cal_val_and_saved_boosters(tmp_path):
-    root=tmp_path/"data"; root.mkdir(); manifest=_write_manifest(root)
-    base=root/"base.ckpt"; base.write_bytes(b"frozen-base-smoke")
-    out=tmp_path/"out"; meta=run(manifest,base,.5,out,seed=17,target_gain=0.0)
+    root=tmp_path/"data"; root.mkdir(); base=root/"base.ckpt"; base.write_bytes(b"frozen-base-smoke")
+    base_sha=hashlib.sha256(base.read_bytes()).hexdigest(); manifest=_write_manifest(root,base_sha=base_sha)
+    out=tmp_path/"out"; meta=run(manifest,base,.5,out,seed=17,target_gain=0.0,git_commit="abcdef1",dataset="D",backbone="unet",resolution=128)
     assert meta["status"] in {"ACTIVE","NO_OP_VAL","NO_OP_CAL"}
     assert meta["sample_counts"]=={"cal":2,"fit":2,"val":2}
     assert len(meta["dataset_content_sha256"])==64 and len(meta["config_sha256"])==64
@@ -121,3 +121,29 @@ def test_real_runner_fit_cal_val_and_saved_boosters(tmp_path):
     heads={"add":lightgbm.Booster(model_file=str(out/"add_model.txt")),"remove":lightgbm.Booster(model_file=str(out/"remove_model.txt"))}
     a,r,_,_=action_scores(heads,rec["image"],p,b)
     assert a.shape==p.shape==r.shape and np.isfinite(a).all() and np.isfinite(r).all()
+
+
+def test_runtime_truthy_nonbool_qualification_is_fail_closed():
+    r,p=sample(); heads,_=train([r],{"a":p},.5,11); b=p>=.5
+    out,info=refine(r["image"],p,.5,heads,.1,.98,qualified="NO_OP_VAL")
+    assert np.array_equal(out,b) and info["status"]=="NO_OP_UNQUALIFIED"
+
+
+def test_manifest_binds_probability_cache_to_base_artifact(tmp_path):
+    root=tmp_path/"bind"; root.mkdir(); base=root/"base.ckpt"; base.write_bytes(b"correct-base")
+    manifest=_write_manifest(root,base_sha="0"*64)
+    with pytest.raises(ValueError,match="probability provenance"):
+        run(manifest,base,.5,tmp_path/"out",seed=1,target_gain=0.0,git_commit="abcdef1",dataset="D",backbone="unet",resolution=128)
+
+
+def test_runner_requires_provenance_identity(tmp_path):
+    root=tmp_path/"identity"; root.mkdir(); base=root/"base.ckpt"; base.write_bytes(b"base")
+    sha=hashlib.sha256(base.read_bytes()).hexdigest(); manifest=_write_manifest(root,base_sha=sha)
+    with pytest.raises(ValueError,match="git_commit"):
+        run(manifest,base,.5,tmp_path/"o1",git_commit="bad",dataset="D",backbone="unet",resolution=128)
+    with pytest.raises(ValueError,match="dataset and backbone"):
+        run(manifest,base,.5,tmp_path/"o2",git_commit="abcdef1",dataset="",backbone="unet",resolution=128)
+    with pytest.raises(ValueError,match="resolution"):
+        run(manifest,base,.5,tmp_path/"o3",git_commit="abcdef1",dataset="D",backbone="unet",resolution=0)
+    with pytest.raises(ValueError,match="target_gain"):
+        run(manifest,base,.5,tmp_path/"o4",target_gain=float("nan"),git_commit="abcdef1",dataset="D",backbone="unet",resolution=128)

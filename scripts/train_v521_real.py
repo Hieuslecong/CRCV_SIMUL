@@ -5,6 +5,7 @@ import csv
 import hashlib
 import json
 import platform
+import re
 from pathlib import Path
 
 import cv2
@@ -39,11 +40,11 @@ def _resolve(root: Path, value: str) -> Path:
     return p if p.is_absolute() else root / p
 
 
-def read_manifest(path: str | Path) -> list[dict]:
+def read_manifest(path: str | Path, expected_base_sha256: str | None = None) -> list[dict]:
     path = Path(path)
     with path.open(newline="", encoding="utf-8-sig") as f:
         rows = list(csv.DictReader(f))
-    required = {"name", "split", "source", "lineage", "image", "mask", "probability"}
+    required = {"name", "split", "source", "lineage", "image", "mask", "probability", "base_artifact_sha256"}
     if not rows:
         raise ValueError("empty manifest")
     names, lineage_split, image_hash_owner = set(), {}, {}
@@ -55,6 +56,11 @@ def read_manifest(path: str | Path) -> list[dict]:
         name = str(row["name"]).strip()
         split = str(row["split"]).strip().lower()
         lineage = str(row["lineage"]).strip()
+        base_sha = str(row["base_artifact_sha256"]).strip().lower()
+        if not re.fullmatch(r"[0-9a-f]{64}", base_sha):
+            raise ValueError(f"manifest row {i}: invalid base_artifact_sha256")
+        if expected_base_sha256 is not None and base_sha != expected_base_sha256.lower():
+            raise ValueError(f"manifest row {i}: probability provenance does not match base artifact")
         if split not in ALLOWED_SPLITS:
             raise ValueError(f"manifest row {i}: split {split!r} is not FIT/CAL/VAL")
         if name in names:
@@ -82,6 +88,7 @@ def read_manifest(path: str | Path) -> list[dict]:
             "image": image,
             "mask": mask,
             "probability": probability,
+            "base_artifact_sha256": base_sha,
             "image_sha256": image_sha, "mask_sha256": mask_sha, "probability_sha256": prob_sha,
         })
     if {r["split"] for r in out} != ALLOWED_SPLITS:
@@ -199,10 +206,21 @@ def qualify_val(metrics: dict) -> tuple[bool, list[str]]:
     return not failures, failures
 
 
-def run(manifest, base_artifact, base_threshold, out_dir, seed=1337, target_gain=.01):
+def run(manifest, base_artifact, base_threshold, out_dir, seed=1337, target_gain=.01, git_commit=None, dataset=None, backbone=None, resolution=None):
     if not np.isfinite(base_threshold) or not 0 <= float(base_threshold) <= 1:
         raise ValueError("base_threshold must be in [0,1]")
-    rows = read_manifest(manifest); records, probs = load_splits(rows)
+    if not np.isfinite(target_gain) or float(target_gain) < 0:
+        raise ValueError("target_gain must be finite and non-negative")
+    commit = str(git_commit or "").strip().lower()
+    if not re.fullmatch(r"[0-9a-f]{7,40}", commit):
+        raise ValueError("git_commit must be a 7-40 character hexadecimal commit id")
+    dataset = str(dataset or "").strip(); backbone = str(backbone or "").strip()
+    if not dataset or not backbone: raise ValueError("dataset and backbone are required")
+    if not isinstance(resolution, int) or resolution <= 0: raise ValueError("resolution must be a positive integer")
+    base_artifact = Path(base_artifact)
+    if not base_artifact.is_file(): raise FileNotFoundError(base_artifact)
+    base_sha = sha256_file(base_artifact)
+    rows = read_manifest(manifest, expected_base_sha256=base_sha); records, probs = load_splits(rows)
     tcfg = TrainingConfig(); safety = SafetyConfig()
     heads, train_meta = train(records["fit"], probs["fit"], float(base_threshold), int(seed), tcfg)
     cal = prepare(records["cal"], probs["cal"], float(base_threshold), heads, tcfg)
@@ -226,13 +244,23 @@ def run(manifest, base_artifact, base_threshold, out_dir, seed=1337, target_gain
     heads["add"].booster_.save_model(str(add_model)); heads["remove"].booster_.save_model(str(remove_model))
     content_index=[{k:(str(r[k]) if isinstance(r[k],Path) else r[k]) for k in ("name","split","source","lineage","image_sha256","mask_sha256","probability_sha256")} for r in rows]
     config_payload={"seed":int(seed),"base_threshold":float(base_threshold),"target_gain":float(target_gain),"training_config":tcfg.__dict__,"safety_config":safety.__dict__,"threshold_grid":{"add":ADD_THRESHOLDS,"remove":REMOVE_THRESHOLDS}}
+    manifest_sha=sha256_file(manifest); dataset_sha=sha256_json(content_index); config_sha=sha256_json(config_payload)
+    experiment_id=f"{dataset}-{backbone}-r{resolution}-s{int(seed)}-{base_sha[:8]}-{config_sha[:8]}"
     meta = {
-        "method": "CRCV-V5.21", "repository_version": "5.21.0.dev2", "core_version": "1.1.1",
+        "experiment_id": experiment_id, "method": "crcv_v521", "method_name": "CRCV-V5.21",
+        "repository_version": "5.21.0.dev3", "core_version": "1.1.2", "git_commit": commit,
+        "dataset": dataset, "backbone": backbone, "resolution": int(resolution),
         "status": status, "failures": failures, "seed": int(seed), "base_threshold": float(base_threshold),
         "add_threshold": add_tau, "remove_threshold": remove_tau, "target_gain": float(target_gain),
         "training": train_meta, "cal": cal_metrics, "val": val_metrics,
-        "manifest_sha256": sha256_file(manifest), "dataset_content_sha256": sha256_json(content_index), "config_sha256": sha256_json(config_payload),
-        "base_artifact_sha256": sha256_file(base_artifact), "artifact_sha256": {"add_model":sha256_file(add_model),"remove_model":sha256_file(remove_model)},
+        "manifest_sha256": manifest_sha, "dataset_content_sha256": dataset_sha, "config_sha256": config_sha,
+        "dataset_manifest_sha256": dataset_sha, "split_manifest_sha256": manifest_sha,
+        "base_artifact_sha256": base_sha, "probability_provenance_bound": True,
+        "artifact_sha256": {"add_model":sha256_file(add_model),"remove_model":sha256_file(remove_model)},
+        "artifacts": [
+            {"path":"add_model.txt","sha256":sha256_file(add_model),"kind":"crcv_add_model"},
+            {"path":"remove_model.txt","sha256":sha256_file(remove_model),"kind":"crcv_remove_model"},
+        ],
         "sample_counts": {k: len(records[k]) for k in sorted(records)},
         "lineages": {k: len({r["lineage"] for r in rows if r["split"] == k}) for k in sorted(ALLOWED_SPLITS)},
         "safety_config": safety.__dict__, "threshold_grid": {"add": ADD_THRESHOLDS, "remove": REMOVE_THRESHOLDS},
@@ -247,7 +275,8 @@ def main():
     p.add_argument("--manifest", required=True); p.add_argument("--base-artifact", required=True)
     p.add_argument("--base-threshold", required=True, type=float); p.add_argument("--out", required=True)
     p.add_argument("--seed", type=int, default=1337); p.add_argument("--target-gain", type=float, default=.01)
-    a = p.parse_args(); result = run(a.manifest, a.base_artifact, a.base_threshold, a.out, a.seed, a.target_gain)
+    p.add_argument("--git-commit", required=True); p.add_argument("--dataset", required=True); p.add_argument("--backbone", required=True); p.add_argument("--resolution", required=True, type=int)
+    a = p.parse_args(); result = run(a.manifest, a.base_artifact, a.base_threshold, a.out, a.seed, a.target_gain, a.git_commit, a.dataset, a.backbone, a.resolution)
     print(json.dumps({k: result[k] for k in ("status", "failures", "add_threshold", "remove_threshold", "sample_counts")}, indent=2))
 
 

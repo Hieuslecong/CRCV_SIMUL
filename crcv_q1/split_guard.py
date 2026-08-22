@@ -2,6 +2,7 @@ from __future__ import annotations
 from collections import defaultdict
 from pathlib import Path
 import csv
+import re
 
 FINAL_SPLITS={"final_external","external_test","final_test"}
 DEV_SPLITS={"train","fit","cal","val","validation","development"}
@@ -10,7 +11,7 @@ def _norm(value): return str(value or "").strip().lower()
 
 def audit_rows(rows:list[dict])->dict:
     failures=[]; warnings=[]; required={"sample_id","split","lineage_id","source_dataset","historically_exposed"}
-    ids=set(); by_lineage=defaultdict(set); by_image=defaultdict(set); final_sources=set(); dev_sources=set(); has_final=False
+    ids=set(); by_lineage=defaultdict(set); by_image=defaultdict(list); final_sources=set(); dev_sources=set(); has_final=False
     for i,row in enumerate(rows):
         missing=[k for k in required if k not in row or str(row.get(k,"")).strip()==""]
         if missing: failures.append(f"row {i}: missing {','.join(sorted(missing))}"); continue
@@ -18,7 +19,9 @@ def audit_rows(rows:list[dict])->dict:
         if sid in ids: failures.append(f"duplicate sample_id: {sid}")
         ids.add(sid); by_lineage[lineage].add(split)
         image_sha=str(row.get("image_sha256","")).strip().lower()
-        if image_sha: by_image[image_sha].add(split)
+        if image_sha:
+            if not re.fullmatch(r"[0-9a-f]{64}", image_sha): failures.append(f"row {i}: invalid image_sha256")
+            by_image[image_sha].append((sid,split))
         if split in FINAL_SPLITS:
             has_final=True; final_sources.add(source)
             if exposed: failures.append(f"final sample {sid} is historically exposed")
@@ -28,8 +31,10 @@ def audit_rows(rows:list[dict])->dict:
     if has_final:
         for i,row in enumerate(rows):
             if not str(row.get("image_sha256","")).strip(): failures.append(f"row {i}: image_sha256 required when final/external data are declared")
-    for digest,splits in by_image.items():
-        if len(splits)>1: failures.append(f"exact image leakage across splits: {digest}")
+    for digest,owners in by_image.items():
+        if len(owners)>1:
+            labels=", ".join(f"{sid}@{split}" for sid,split in owners)
+            failures.append(f"exact duplicate image: {digest} appears as {labels}")
     if final_sources&dev_sources: warnings.append("final and development sets share source_dataset names; source-domain external claims need stronger provenance")
     return {"status":"PASS" if not failures else "FAIL","failures":failures,"warnings":warnings,"n_rows":len(rows),"n_lineages":len(by_lineage),"final_sources":sorted(final_sources),"development_sources":sorted(dev_sources)}
 

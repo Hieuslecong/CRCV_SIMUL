@@ -88,7 +88,7 @@ def build_training_matrices(records,probabilities,base_threshold,seed=1337,confi
     ax=np.concatenate(AX).astype(np.float32); ay=np.concatenate(Ay).astype(np.int8); rx=np.concatenate(RX).astype(np.float32); ry=np.concatenate(Ry).astype(np.int8)
     if len(np.unique(ay))<2 or len(np.unique(ry))<2:raise ValueError("both action heads require two classes")
     schema_sha=hashlib.sha256(json.dumps(schema,separators=(",",":")).encode()).hexdigest(); matrix_sha=hashlib.sha256(ax.tobytes()+ay.tobytes()+rx.tobytes()+ry.tobytes()).hexdigest()
-    meta={"method":"CRCV-V5.21","core_version":"1.1.1","feature_names":schema,"feature_schema_sha256":schema_sha,"training_matrix_sha256":matrix_sha,"sources":source_counts,"add_rows":int(len(ay)),"add_positive":int(ay.sum()),"remove_rows":int(len(ry)),"remove_positive":int(ry.sum())}
+    meta={"method":"CRCV-V5.21","core_version":"1.1.2","feature_names":schema,"feature_schema_sha256":schema_sha,"training_matrix_sha256":matrix_sha,"sources":source_counts,"add_rows":int(len(ay)),"add_positive":int(ay.sum()),"remove_rows":int(len(ry)),"remove_positive":int(ry.sum())}
     return (ax,ay),(rx,ry),meta
 
 

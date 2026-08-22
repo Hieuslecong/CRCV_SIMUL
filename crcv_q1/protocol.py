@@ -11,10 +11,12 @@ class Q1Protocol:
     """Publication-evidence protocol for the CRCV V5.21 family.
 
     Numerical evidence floors are inherited unchanged from the previous frozen
-    Q1 protocol; this version updates method/provenance identity only.
+    Q1 protocol; this version strengthens method/provenance identity without
+    relaxing any scientific evidence threshold.
     """
 
-    version: str = "5.21-q1-v1"
+    version: str = "5.21-q1-v2"
+    proposed_method: str = "crcv_v521"
     resolutions: tuple[int, ...] = (128, 256)
     full_seeds: tuple[int, ...] = (1337, 2027, 31415)
     min_backbones: int = 5
@@ -40,6 +42,7 @@ class Q1Protocol:
     corrected_p_floor: float = 0.05
 
     def validate(self) -> "Q1Protocol":
+        if self.proposed_method != "crcv_v521": raise ValueError("proposed_method is frozen to crcv_v521")
         if 256 not in self.resolutions: raise ValueError("native 256 resolution is mandatory")
         if tuple(dict.fromkeys(self.full_seeds)) != self.full_seeds or len(self.full_seeds) < 3: raise ValueError("full_seeds must contain at least three unique frozen seeds")
         if self.min_backbones < 5: raise ValueError("at least five backbones are required")
