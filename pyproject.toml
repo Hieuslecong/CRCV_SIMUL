@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "crcv"
-version = "5.20.3"
-description = "CRCV corrective crack-segmentation refinement and publication evidence tooling"
+version = "5.21.0.dev1"
+description = "CRCV compact dual-action corrective crack-segmentation refinement and publication evidence tooling"
 requires-python = ">=3.10"
 dependencies = [
   "numpy",
@@ -22,7 +22,7 @@ test = ["pytest>=8"]
 
 [tool.setuptools.packages.find]
 where = ["."]
-include = ["crcv52*", "crcv_q1*"]
+include = ["crcv52*", "crcv_q1*", "crcv_core*"]
 
 [tool.pytest.ini_options]
 pythonpath = ["."]

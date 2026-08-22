@@ -1,3 +1,7 @@
+# CRCV V5.21-dev1 — Compact Dual-Action Candidate
+
+> **Branch status:** the canonical scientific development path on `feature/crcv-v5-21-compact-aac-q1` is the five-module natural-error `crcv_core` ADD/REMOVE + AAC implementation. See `README_V521.md`. The V5.20.3 material below is retained as historical/development evidence and an explicit counterfactual REMOVE ablation; it is not deleted or relabeled.
+
 # CRCV V5.20.3 — Counterfactual Corrective Refinement Engineering RC
 
 CRCV is a corrective crack-segmentation refinement framework over frozen Base predictions. The V5.20 research formulation uses explicit corrective actions:
